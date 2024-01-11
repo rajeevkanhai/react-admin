@@ -1,0 +1,2129 @@
+// ****************Code By Rajeev Jha on 06-10-2021*********************************************
+import { Component, OnInit, TemplateRef } from "@angular/core";
+import { Router } from "@angular/router";
+import { BsModalRef } from "ngx-bootstrap/modal/bs-modal-ref.service";
+import { BsModalService } from "ngx-bootstrap/modal";
+import { UntypedFormGroup } from "@angular/forms";
+import { ToastrService } from "ngx-toastr";
+import { MLModelService } from "src/app/rsec-services/rsec-mlmodel.service";
+import { FeatureService } from "src/app/rsec-services/rsec-feature.service";
+import { EventPipelineService } from "src/app/rsec-services/rsec-eventpipeline.service";
+import { SourceService } from "src/app/rsec-services/rsec-source.service";
+import { SystemAttributeService } from "src/app/rsec-services/rsec-systemattribute.service";
+import { environment } from "src/environments/environment";
+import { QueryBuilderConfig } from 'angular2-query-builder';
+
+@Component({
+	selector: "feature",
+	templateUrl: "rsec-feature.component.html",
+	styleUrls: ["./rsec-feature.component.css"],
+})
+
+export class FeatureComponent implements OnInit {
+	query = {
+	  field: null,
+	  operator: null,
+	  value: null,
+	  modelLabelCode: null,
+	  condition: "and",
+	  label:null,
+	  rules: [],
+	};
+	config: QueryBuilderConfig = { fields: {} };
+	addcond: any = "";
+	modalRef: BsModalRef;
+	SourceList: any = [];
+	dropdownSettings = {};
+	eventLogList: any;
+	FeaturelList: any;
+	logedinuser: any = "";
+	csvResult: any = [];
+	EventPipelineList: any = [];
+	MlModelsForm: UntypedFormGroup;
+	name: any = "";
+	featuretype: any = "";
+	featurelevel: any = "";
+	featureID: any = "";
+	ToCalculate: any = "";
+	defaultstatus:any='';
+	functionAttribute: any = "";
+	tumblingWindow: any = "";
+	slidingWindow: any = "";
+	windowAttribute1: any = "";
+	windowAttribute2: any = "";
+	featuregroup: any = [];
+	masterdata: any = "";
+	ID: any = "";
+	isActive: any = "";
+	isUserAdmin: boolean = false;
+	FinalAccessRole: any = [];
+	accessrole: any = "";
+	ViewData: any = [];
+	InitialFilterData: any = [];
+	setgroupby: any = [];
+	SingleData: any = [];
+	Allone: boolean = false;
+	Calculateone: boolean = false;
+	alleventdetailslist: any = [];
+	eventviewdetails: boolean = true;
+	featureCreate: boolean = false;
+	featureUpdate: boolean = false;
+	eventupdate: boolean = false;
+	eventuploadfile: boolean = false;
+	featureview: boolean = true;
+	viewdetails: boolean = false;
+	mldetails: boolean = false;
+	mlupdate: boolean = false;
+	showgroup: boolean = false;
+	SeedManagementList: any = [];
+	SeedManagementAttributrList: any = [];
+	FinalSeedManagementAttributrList: any = [];
+	isHueristic: boolean = false;
+	GetToCalculateList: any = [];
+	GetLevellist: any = [];
+	GetTypelist: any = [];
+	GetElementlist: any = [];
+	SystemAttributedateList: any = [];
+	GetAllAttributeList: any = [];
+	namevalue: any = [];
+	namevalue1: any = [];
+	namevalue2: any = [];
+	systemAttributeList: any = [];
+	featureList: any = [];
+	sysfunctionList: any = [];
+	modelList: any = [];
+	seedlist: any = [];
+	SystemAttibuteCategory: any = "";
+	FeatureCategory: any = "";
+	ModelCategory: any = "";
+	SeedCategory: any = "";
+	SystemFunctionList: any = [];
+	SystemFunctionCategory: any;
+	GetSystemDateSeedAttributeList: any = [];
+	datavalue: any = [];
+	datavalue1: any = [];
+	datavalue2: any = [];
+	systemAttributeLists: any = [];
+	seedeList: any = [];
+	timevalue: any = [];
+	timevaluess: any = [];
+	datevalues: any = [];
+	timevalues: boolean = false;
+	dd: any = "";
+	val: any = "";
+	GetSystemSeedAttributeList: any = [];
+	GetSystemTimeSeedAttributeList: any = [];
+	datetimevalue: any = [];
+	datetimevalue1: any = [];
+	datetimevalue2: any = [];
+	systemAttributetimeLists: any = [];
+	seedetimeList: any = [];
+	FilterDataResult: any = [];
+	i: number = 0;
+	functionAttributeResult: any = [];
+	featuregroupResult: any = [];
+	windowAttribute1Result: any = [];
+	windowAttribute2Result: any = [];
+	OF1: any = "";
+	elementdatalistvalue: any = [];
+	windowAttribute1show: boolean = false;
+	SystemAttributetimeList: any = [];
+	SystemAttributeList: any = [];
+	functionlist: any = [];
+	timewindowList: any = [];
+	slidingwindowList: any = [];
+	MlmodelList: any = [];
+	GetOperatorList: any = [];
+	HeuristicChange: boolean = true;
+	deleteresult: any = "";
+	SingleEditData: any = "";
+	MlValueList: any = [];
+	filesname: any = [];
+	names: any = "";
+	result: any = [];
+	formData: any = [];
+	DeleteStatus: any = "";
+	DeleteId: any = "";
+	MlModelsData: any = "";
+	data: any = "";
+	DeleteID: any = "";
+	editData: any = [];
+	offset:any='';
+	ShowTimeAttributeField: boolean = false;
+	ShowChangeEdit: boolean = false;
+	togglecreate: any = "";
+	validationcounter: number = 1;
+	groupByCondition: boolean = true;
+    Enablebutton:boolean=false;
+	error:String 
+	constructor(
+	  private MLModelService: MLModelService,
+	  private FeatureService: FeatureService,
+	  private SourceService: SourceService,
+	  private eventpipelineService: EventPipelineService,
+	  private _router: Router,
+	  private modalService: BsModalService,
+	  private toastrService: ToastrService,
+	  private systemattributeservice: SystemAttributeService
+	) {}
+  
+	ngOnInit() {
+		this.GetFeature();
+		this.logedinuser = JSON.parse(sessionStorage.getItem("userId"));
+		this.isUserAdmin = JSON.parse(sessionStorage.getItem("isUserAdmin"));
+	  if (this.isUserAdmin == false) {
+		this.accessrole = environment.accessrole;
+		this.accessrole.forEach((element) => {
+		  if (element.entityId == "040") {
+			this.FinalAccessRole.push({
+			  canView: element.canView,
+			  canCreate: element.canCreate,
+			  canUpdate: element.canUpdate,
+			  canDelete: element.canDelete,
+			  canActivate: element.canActivate,
+			});
+		  }
+		});
+	  } else if (this.isUserAdmin == true) {
+		this.FinalAccessRole = [
+		  {
+			canView: true,
+			canCreate: true,
+			canUpdate: true,
+			canDelete: true,
+			canActivate: true,
+		  },
+		];
+	  } else {
+		this.FinalAccessRole = [
+		  {
+			canView: false,
+			canCreate: false,
+			canUpdate: false,
+			canDelete: false,
+			canActivate: false,
+		  },
+		];
+	  }
+  
+	  this.dropdownSettings = {
+		singleSelection: false,
+		idField: "uuid",
+		textField: "name",
+		allowSearchFilter: true
+	  };
+	  this.GetRoles();
+	  
+	  this.GetAllElementAttribute();
+	  this.GetOperator();
+	  this.GetAllFilterOperatorData();
+	  this.GetToCalculate();
+	  this.GetSystemAttribute();
+	  this.GetTimeWindow();
+	  this.GetSlidingWindow();
+	  this.GetMlModels();
+	  this.GetSystemFunction();
+	  this.GetDataSlideType();
+	  this.GetDataWindowType();
+	  
+	//   this.GetSeedManagementAttributeList();
+	  this.GetSystemDateSeedAttribute();
+	  this.GetSystemTimeSeedAttribute();
+	  this.GetMLValue();
+	  this.GetNonHeuristicFeature();
+	  this.createQueryBuilderConfig();
+	  
+	}
+  
+	GetRoles() {
+	  if (this.FinalAccessRole.length <= 0) {
+		this.FinalAccessRole = [
+		  {
+			canView: false,
+			canCreate: false,
+			canUpdate: false,
+			canDelete: false,
+			canActivate: false,
+		  },
+		];
+	  }
+	}
+
+	LagId:any=""
+	OffsetDisplay(LagId:any){
+		this.offset="";
+		if(LagId=='206'){
+			this.LagId=LagId
+		}
+		else{
+			this.LagId=''
+		}
+	}
+	rows: any = [];
+	GetFeature() {
+	  this.FeatureService.GetFeature().subscribe((res) => {
+		if (res) {
+		  this.FeaturelList = [];
+		  this.FeaturelList = res;
+		  this.FeaturelList = this.FeaturelList.featurelist;
+		  this.rows = [];
+		  this.FeaturelList.forEach((element) => {
+			this.rows.push({
+			  actions: element,
+			  name: element.name,
+			  heuristic: element.isHeuristic,
+			  createdby: element.createdBy.userName,
+			  date: element.createdOn,
+			  status: element,
+			});
+		  });
+		} else {
+		  this.FeaturelList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	sortedGetOperatorList: any = [];
+	GetOperator() {
+	  this.FeatureService.GetOperator().subscribe((res) => {
+		if (res) {
+		  this.GetOperatorList = res;
+		  this.GetOperatorList = this.GetOperatorList.codeMasterDtoList;
+		  this.sortedGetOperatorList = this.GetOperatorList.sort((t1, t2) => {
+			const name1 = t1.cdNm1.toLowerCase();
+			const name2 = t2.cdNm1.toLowerCase();
+			if (name1 > name2) {
+			  return 1;
+			}
+			if (name1 < name2) {
+			  return -1;
+			}
+			return 0;
+		  });
+		} else {
+		  this.GetOperatorList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	sortedsystemAttributeList: any = [];
+	sortednenableSystemAttributeList:any=[];
+	sortedseedlist: any = [];
+	sortedSystemFunctionList: any = [];
+	GetAllElementAttribute() {
+	  this.FeatureService.GetAllElementAttribute().subscribe((res) => {
+		if (res) {
+		  this.GetAllAttributeList = res;
+		  this.GetAllAttributeList = this.GetAllAttributeList.elementMap;
+		  for (this.namevalue in this.GetAllAttributeList) {
+			// this.namevalue = this.namevalue;
+			if (this.namevalue == "010") {
+			  this.SystemAttibuteCategory = this.namevalue;
+			  this.systemAttributeList = this.GetAllAttributeList[this.namevalue];
+			  
+			  this.sortedsystemAttributeList = this.systemAttributeList.sort(
+				(t1, t2) => {
+				  const name1 = t1.name.toLowerCase();
+				  const name2 = t2.name.toLowerCase();
+				  if (name1 > name2) {
+					return 1;
+				  }
+				  if (name1 < name2) {
+					return -1;
+				  }
+				  return 0;
+				}
+			  );
+			} 
+			
+			else if (this.namevalue == "020") {
+			  this.FeatureCategory = this.namevalue;
+			} else if (this.namevalue == "030") {
+			  this.ModelCategory = this.namevalue;
+			  this.modelList = this.GetAllAttributeList[this.namevalue];
+			} else if (this.namevalue == "040") {
+			  this.SeedCategory = this.namevalue;
+			  this.seedlist = this.GetAllAttributeList[this.namevalue];
+			  this.sortedseedlist = this.seedlist.sort((t1, t2) => {
+				const name1 = t1.name.toLowerCase();
+				const name2 = t2.name.toLowerCase();
+				if (name1 > name2) {
+				  return 1;
+				}
+				if (name1 < name2) {
+				  return -1;
+				}
+				return 0;
+			  });
+			} else if (this.namevalue == "050") {
+			  this.SystemFunctionCategory = this.namevalue;
+			  this.SystemFunctionList = this.GetAllAttributeList[this.namevalue];
+			  this.sortedSystemFunctionList = this.SystemFunctionList.sort(
+				(t1, t2) => {
+				  const name1 = t1.name.toLowerCase();
+				  const name2 = t2.name.toLowerCase();
+				  if (name1 > name2) {
+					return 1;
+				  }
+				  if (name1 < name2) {
+					return -1;
+				  }
+				  return 0;
+				}
+			  );
+			}
+  
+			for (this.namevalue1 in this.systemAttributeList) {
+			  break;
+			}
+		  }
+		//   this.namevalue1;
+		//   this.systemAttributeList;
+		//   this.featureList;
+		  this.Enablebutton=true;
+		} else {
+		  this.GetAllAttributeList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	GetMLValue() {
+	  //Function Used to Get Ml Value
+	  this.FeatureService.GetMLValue().subscribe((res) => {
+		if (res) {
+		  this.MlValueList = res;
+		  if (this.MlValueList.isSuccess == true) {
+			this.MlValueList = this.MlValueList.codeMasterDtoList;
+		  } else {
+			this.MlValueList = [];
+		  }
+		}
+	  });
+	}
+    GetAllFilterOperatorDataList:any={}
+	GetAllFilterOperatorData(){
+		this.FeatureService.GetAllFilterOperatorData().subscribe((res) => {
+			if (res) {
+			  this.GetAllFilterOperatorDataList = res;
+			  this.GetAllFilterOperatorDataList = this.GetAllFilterOperatorDataList.typeAndOperatorMap;
+			  this.GetFilterOperatorList=Object.entries(this.GetAllFilterOperatorDataList);
+			} else {
+			  this.GetAllFilterOperatorDataList = [];
+			}
+		  },(error)=>{
+			this.error=error;
+			 this.toastrService.clear();
+			this.toastrService.error(error)
+		  });
+		
+	}
+    ConfigOperatorList={}
+	createQueryBuilderConfig() {
+	  var i = 1;
+	  var fields = {};
+	  for (let key in this.GetAllAttributeList) {
+		var attrArr = this.GetAllAttributeList[key];
+		Object.values(attrArr).forEach((attr) => {
+			if(i==1){
+				var fieldKey="0"+","+"0";
+				var value = {};
+		       value["name"] ="";
+		      value["type"] = "string";
+			  value["operators"] =[];
+		      fields[fieldKey] = value;
+			  i++
+			}
+		  var fieldKey = key + "," + attr["uuid"];
+		  var value = {};
+		  value["name"] = attr["name"];
+		  value["type"] = "string";
+		  this.ChangeField(attr["type"]);
+		  value["operators"] =this.ConfigOperatorList;
+		  fields[fieldKey] = value;
+		});
+	  }
+	  this.config["fields"] = fields;
+	}
+    GetFilterOperatorList=[];
+	ChangeField(data:any){
+		if(this.GetFilterOperatorList.length>0){
+		this.ConfigOperatorList=this.GetFilterOperatorList.filter(x => x[0] === data);
+		this.ConfigOperatorList=this.ConfigOperatorList[0][1]
+		}		
+	}
+  
+	AIHeuristic() {
+		this.ToCalculate='';
+		this.Calculateone=false;
+		this.LagId="";
+		this.offset="";
+		this.defaultstatus='';
+		this.tumblingWindow='';
+        this.windowAttribute1='';
+        this.windowAttribute2='';
+        this.slidingWindow='';
+		this.featuregroup='';
+
+		this.query = {
+			field: null,
+			operator: null,
+			value: null,
+			modelLabelCode: null,
+			condition: "and",
+			rules: [],
+			label:null
+		  };
+		  this.CalculateDisplay();
+	  if (this.isHueristic == false) {
+		this.isHueristic = true;
+		this.HeuristicChange = false;
+		this.defaultstatus='';
+	  } else if (this.isHueristic == true) {
+		this.isHueristic = false;
+		this.HeuristicChange = true;
+	  } else {
+		this.isHueristic = undefined;
+	  }
+	}
+  
+	ResetHeuristic() {
+	  this.isHueristic = false;
+	  this.HeuristicChange = true;
+	}
+  
+	ChangeHeuristic() {
+		this.ToCalculate='';
+		this.functionAttribute='';
+		this.LagId="";
+		this.offset="";
+		this.defaultstatus='';
+		this.tumblingWindow='';
+        this.windowAttribute1='';
+        this.windowAttribute2='';
+        this.slidingWindow='';
+		this.featuregroup='';
+		this.query = {
+			field: null,
+			operator: null,
+			value: null,
+			modelLabelCode: null,
+			condition: "and",
+			rules: [],
+			label:null
+		  };
+	  if (this.isHueristic == false) {
+		this.isHueristic = false;
+		this.HeuristicChange = false;
+	  } else if (this.isHueristic == true) {
+		this.isHueristic = true;
+		this.HeuristicChange = true;
+	  }
+	}
+  
+	sortedfeatureList: any = [];
+	GetNonHeuristicFeature() {
+	  this.FeatureService.GetNonHeuristicFeature().subscribe((res) => {
+		if (res) {
+		  this.featureList = res;
+		  this.featureList = this.featureList.elementMap["020"];
+		  this.sortedfeatureList = this.featureList.sort((t1, t2) => {
+			const name1 = t1.name.toLowerCase();
+			const name2 = t2.name.toLowerCase();
+			if (name1 > name2) {
+			  return 1;
+			}
+			if (name1 < name2) {
+			  return -1;
+			}
+			return 0;
+		  });
+		} else {
+		  this.featureList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	CategoryID: boolean = false;
+  
+	OpenFeatureForm() {
+	  //Function Used to Display Create Feature Form Fields
+	  if (this.FinalAccessRole[0].canCreate == true) {
+		this.sortednenableSystemAttributeList2=[];
+		this.validationcounter = 1;
+		this.HeuristicChange = true;
+		this.GetAllElementAttribute();
+		this.GetOperator();
+		this.createQueryBuilderConfig();
+		this.GetToCalculate();
+		this.GetSystemAttribute();
+		this.GetTimeWindow();
+		this.GetSlidingWindow();
+		this.GetFeature();
+		this.GetMlModels();
+		this.GetSystemFunction();
+		//this.GetSeedManagementAttributeList();
+		this.GetSystemDateSeedAttribute();
+		this.GetSystemTimeSeedAttribute();
+		this.GetMLValue();
+		this.GetNonHeuristicFeature();
+		this.name = "";
+		this.ToCalculate = "";
+		this.functionAttribute = "";
+		this.featuregroup = "";
+		this.tumblingWindow = "";
+		this.windowAttribute1 = "";
+		this.windowAttribute2 = "";
+		this.slidingWindow = "";
+		this.query = {
+		  field: null,
+		  operator: null,
+		  value: null,
+		  modelLabelCode: null,
+		  condition: "and",
+		  rules: [],
+		  label:null
+		};
+		this.featureCreate = true;
+		this.featureview = false;
+		this.viewdetails = false;
+	  }
+	  this.isHueristic = false;
+	  this.groupByCondition = false;
+	  this.Calculateone = false;
+	  this.togglecreate = "";
+	  this.LagId="";
+	  this.offset="";
+	}
+	fquery: any = {};
+	calculatetumbling:any='';
+	calculatesliding:any='';
+	DataType:any=[];
+	GetDataSlideType() {
+		this.FeatureService.GetDataSlideType().subscribe((res) => {
+		  if (res) {
+			this.DataType = res;
+			this.DataType = this.DataType.codeMasterDtoList;
+			sessionStorage.setItem('dataslidetype',JSON.stringify(this.DataType));
+		  } else {
+			this.DataType = [];
+		  }
+		},(error)=>{
+		  this.error=error;
+		   this.toastrService.clear();
+		  this.toastrService.error(error)
+		});
+	  }
+	GetDataWindowType() {
+	  this.FeatureService.GetDataWindowType().subscribe((res) => {
+		if (res) {
+		  this.DataType = res;
+		  this.DataType = this.DataType.codeMasterDtoList;
+		  sessionStorage.setItem('datatwindowtype',JSON.stringify(this.DataType));
+		} else {
+		  this.DataType = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	SetFeature() {
+	  //Function used to Create Feature
+	  if (this.validationcounter == 1) {
+		if (this.name == undefined || this.name == "" || this.name == null) {
+		  this.toastrService.error("Please enter feature name");
+		  return false;
+		}
+		if(this.isHueristic==true){
+			if (this.defaultstatus == undefined || this.defaultstatus == "" || this.defaultstatus == null) {
+				this.toastrService.clear();
+				this.toastrService.error("Please enter default status");
+				return false;
+			  }
+		}
+		this.i = 0;
+		if (
+		  this.tumblingWindow != "" &&
+		  this.tumblingWindow != null &&
+		  this.tumblingWindow != undefined &&
+		  this.tumblingWindow != "undefined"
+		) {
+		  if (
+			this.windowAttribute1 == "" ||
+			this.windowAttribute1 == null ||
+			this.windowAttribute1 == undefined
+		  ) {
+			this.toastrService.error("Please select date attribute");
+			return false;
+		  }
+		}
+		if(this.ToCalculate=='206'){
+			if(this.offset== "" || this.offset == null || this.offset == undefined){
+				this.toastrService.error("Please enter offset");
+				return false;
+			}
+		 }
+		if (
+		  this.slidingWindow != "" &&
+		  this.slidingWindow != null &&
+		  this.slidingWindow != undefined
+		) {
+		  if (
+			this.windowAttribute1 == "" ||
+			this.windowAttribute1 == null ||
+			this.windowAttribute1 == undefined
+		  ) {
+			this.toastrService.error("Please select  date attribute");
+			return false;
+		  }
+		}
+  
+		// this.ToCalculate = this.ToCalculate;
+		if (
+		  this.ToCalculate == "" ||
+		  this.ToCalculate == undefined ||
+		  this.ToCalculate == null
+		) {
+		  this.ToCalculate = null;
+		} else {
+		  if (this.ToCalculate.startsWith("2") && this.featuregroup.length == 0) {
+			this.toastrService.error("Please select group by");
+			return false;
+		  }
+		//   this.ToCalculate = this.ToCalculate;
+		}
+  
+		// this.functionAttribute = this.functionAttribute;
+		if (
+		  this.functionAttribute == "" ||
+		  this.functionAttribute == undefined ||
+		  this.functionAttribute == null
+		) {
+		  if (
+			this.ToCalculate != null &&
+			this.ToCalculate != undefined &&
+			this.ToCalculate != ""
+		  ) {
+			this.toastrService.error("Please select system attribute");
+			return false;
+		  }
+		  this.functionAttributeResult = null;
+		} else {
+		  this.functionAttributeResult = {
+			elementId: this.functionAttribute.split(",")[0],
+			elementCode: this.functionAttribute.split(",")[1],
+			uuid: this.functionAttribute.split(",")[2],
+		  };
+		}
+		// this.featuregroup = this.featuregroup;
+		if (this.featuregroup) {
+		  if (!this.ToCalculate) {
+			this.toastrService.error("Please select  tocalculate attribute");
+			this.validationcounter = 1;
+			return false;
+		  }
+		  this.featuregroupResult = [];
+		  this.featuregroup.forEach((element) => {
+			this.featuregroupResult.push({
+			  elementCode: "010",
+			  elementId: element.id,
+			  uuid: element.uuid,
+			});
+		  });
+		}
+  
+		if (
+		  this.featuregroup == "" ||
+		  this.featuregroup == undefined ||
+		  this.featuregroup == null
+		) {
+		  this.featuregroupResult = null;
+		} else {
+		//   this.featuregroupResult = this.featuregroupResult;
+		}
+  
+		if (
+		  this.tumblingWindow == "" ||
+		  this.tumblingWindow == undefined ||
+		  this.tumblingWindow == null
+		) {
+		  this.tumblingWindow = null;
+		} else {
+		//   this.tumblingWindow = this.tumblingWindow;
+		}
+		if (
+		  this.slidingWindow == "" ||
+		  this.slidingWindow == undefined ||
+		  this.slidingWindow == null
+		) {
+		  this.slidingWindow = null;
+		} else {
+		//   this.slidingWindow = this.slidingWindow;
+		}
+		// this.windowAttribute1 = this.windowAttribute1;
+		if (
+		  this.windowAttribute1 == "" ||
+		  this.windowAttribute1 == undefined ||
+		  this.windowAttribute1 == null
+		) {
+		  this.windowAttribute1Result = null;
+		} else {
+		  this.windowAttribute1Result = {
+			elementId: this.windowAttribute1.split(",")[0],
+			elementCode: this.windowAttribute1.split(",")[1],
+			uuid: this.windowAttribute1.split(",")[3],
+		  };
+		}
+		// this.windowAttribute2 = this.windowAttribute2;
+		if (
+		  this.windowAttribute2 == "" ||
+		  this.windowAttribute2 == undefined ||
+		  this.windowAttribute2 == null
+		) {
+		  this.windowAttribute2Result = null;
+		} else {
+		  this.windowAttribute2Result = {
+			elementId: this.windowAttribute2.split(",")[0],
+			elementCode: this.windowAttribute2.split(",")[1],
+			uuid: this.windowAttribute2.split(",")[2],
+		  };
+		}
+		
+		var datatwindowtype=JSON.parse(sessionStorage.getItem('datatwindowtype'));
+		var datatslidetype=JSON.parse(sessionStorage.getItem('dataslidetype'));
+		datatwindowtype.forEach((groupElement) => { 
+		if(this.tumblingWindow==groupElement.cdId)
+		{
+			
+        this.calculatetumbling=Number(groupElement.cdNm2);
+		}
+		
+	})
+	datatslidetype.forEach((groupElement1) => {		
+		if(this.slidingWindow==groupElement1.cdId)
+		{
+			
+			this.calculatesliding=Number(groupElement1.cdNm2);
+
+		}		
+	})
+		if(this.calculatetumbling < this.calculatesliding)
+			{
+				this.toastrService.error("Sliding window cannot be grater than time window");
+				return false;
+			}
+		// this.isHueristic = this.isHueristic;
+		if (this.isHueristic == true) {
+		  if (this.query.rules.length == 0) {
+			this.toastrService.error("Please add rule.");
+			return false;
+		  }
+		}
+		if (this.isHueristic == false) {
+		  if (this.query.rules.length == 0) {
+			if (
+			  this.functionAttribute == null ||
+			  this.functionAttribute == "" ||
+			  this.functionAttribute == undefined
+			) {
+			  this.toastrService.error("Please add either rule or tocaculate.");
+			  this.ToCalculate = "";
+			  return false;
+			}
+		  }
+		}
+  
+		// this.query = this.query;
+		if (this.query.rules.length == 0) {
+		  this.fquery = null;
+		} else {
+		  this.fquery = this.query;
+		}
+		if(this.isHueristic==true){
+		for(let i = 0; i <=this.fquery.rules.length-1; i++){
+			if(this.isHueristic==true){
+			if(this.fquery.rules[i].modelLabelCode=='' || this.fquery.rules[i].modelLabelCode==undefined || this.fquery.rules[i].modelLabelCode==null){
+				this.toastrService.error('Please enter ruleset label');
+				return false;
+			}
+		}
+			if(this.fquery.rules[i].rules.length==0){
+				this.toastrService.error('No Rule is present for rule set');
+				return false;
+			}
+			for(let j = 0; j <=this.fquery.rules[i].rules.length-1; j++){
+				if(this.fquery.rules[i].rules[j].field=="0,0"){
+					this.toastrService.error("Either rule field, value or operator is not present");
+					return false;
+				}
+				if(this.fquery.rules[i].rules[j].operator=='null'){
+					this.toastrService.error("Either rule field, value or operator is not present");
+					return false;
+				}
+				if(this.fquery.rules[i].rules[j].value=="" || this.fquery.rules[i].rules[j].value==undefined || this.fquery.rules[i].rules[j].value==null){
+					this.toastrService.error("Either rule field, value or operator is not present");
+					return false;
+				}
+			}
+		}
+	}
+		if(this.isHueristic==false){
+			this.defaultstatus=''
+		}
+		if(this.isHueristic!=false){
+			this.offset='';
+
+		}
+		if(this.ToCalculate=='206'){
+			this.fquery=null;
+		}
+		var sendData = {
+		  name: this.name,
+		  groupOperation: this.ToCalculate,
+		  groupOperationColumn: this.functionAttributeResult,
+		  ruleDto: this.fquery,
+		  groupBy: this.featuregroupResult,
+		  tumblingWindow: this.tumblingWindow,
+		  windowAttribute1: this.windowAttribute1Result,
+		  windowAttribute2: this.windowAttribute2Result,
+		  slidingWindow: this.slidingWindow,
+		  isHeuristic: this.isHueristic,
+		  userId: this.logedinuser,
+		  defaultLable:this.defaultstatus,
+		  offset:this.offset
+		};
+		this.FeatureService.SetFeature(sendData).subscribe((res) => {
+		  if (res) {
+			this.elementdatalistvalue = res;
+			if (this.elementdatalistvalue.isSuccess == true) {
+			  this.toastrService.success(this.elementdatalistvalue.message);
+			  this.featureview = true;
+			  this.featureCreate = false;
+			  this.featureUpdate = false;
+			  this.viewdetails = false;
+			  this.GetAllElementAttribute();
+			  this.GetFeature();
+			  this.createQueryBuilderConfig();
+			  this.validationcounter++;
+			} else {
+			  this.toastrService.error(this.elementdatalistvalue.message);
+			  this.featureCreate = true;
+			  this.featureUpdate = false;
+			  this.viewdetails = false;
+			  this.elementdatalistvalue = [];
+			  this.validationcounter = 1;
+			}
+		  }
+		},(error)=>{
+			this.error=error;
+			 this.toastrService.clear();
+			this.toastrService.error(error)
+		  });
+	  }
+	}
+  
+	// ***************Function to View Features Details(Rajeev Jha on 02-08-21)***************************
+	ViewFeature(data) {
+	  if (this.FinalAccessRole[0].canView == true) {
+		this.featuregroup = "";
+		this.ShowChangeEdit = false;
+		this.featureCreate = false;
+		this.featureview = false;
+		this.featureUpdate = false;
+		this.viewdetails = true;
+		this.ViewData = data;
+		if (data.isHeuristic == true) {
+		  this.HeuristicChange = false;
+		} else {
+		  this.HeuristicChange = true;
+		}
+		this.name = data.name;
+		if(data.groupOperation!=null){
+			this.LagId=data.groupOperation;
+			this.offset=data.offset;
+		}
+		else{
+			this.LagId='';
+			this.offset='';
+
+		}
+		this.offset=data.offset;
+		this.defaultstatus=data.defaultLable;
+		if (data.tumblingWindow != null) {
+		  this.tumblingWindow = data.tumblingWindow;
+		} else {
+		  this.tumblingWindow = "";
+		}
+		if (data.slidingWindow != null) {
+		  this.slidingWindow = data.slidingWindow;
+		} else {
+		  this.slidingWindow = "";
+		}
+		if (data.windowAttribute1 != null) {
+		  this.windowAttribute1 =
+			data.windowAttribute1.elementCode + "," + data.windowAttribute1.uuid;
+		} else {
+		  this.windowAttribute1 = "";
+		}
+		if (data.windowAttribute2 != null) {
+		  this.windowAttribute2 =
+			data.windowAttribute2.elementCode + "," + data.windowAttribute2.uuid;
+		} else {
+		  this.windowAttribute2 = "";
+		}
+  
+		if (data.groupOperation != null) {
+		  this.ToCalculate = data.groupOperation;
+		  if (this.ToCalculate.startsWith("2")) {
+			this.groupByCondition = true;
+			this.Calculateone = true;
+		  } else {
+			this.groupByCondition = false;
+		  }
+		} else {
+		  this.ToCalculate = "";
+		}
+		this.isHueristic = data.isHeuristic;
+		if (data.groupOperationColumn != null) {
+		  this.functionAttribute =
+			data.groupOperationColumn.elementCode +
+			"," +
+			data.groupOperationColumn.uuid;
+		} else {
+		  this.functionAttribute = "";
+		}
+		this.buildGroupByDropDown(data);
+		this.createQueryBuilderConfig();
+		this.query = data.ruleDto;
+		if(data.groupOperation!=null){
+			this.LagId=data.groupOperation;
+			this.offset=data.offset;
+		}
+		else{
+			this.LagId='';
+			this.offset='';
+	
+		}
+		this.sortednenableSystemAttributeList2=[];
+		// this.GetSystemAttribute();
+		if(this.featuregroup!=null || this.featuregroup!="" || this.featuregroup!=undefined){
+			this.ShowAll();
+		}
+		
+	  }
+	}
+  
+	// *Function to Edit Features Details(Rajeev Jha on 28-09-21)*/
+	EditFeature(data) {
+	  if (this.FinalAccessRole[0].canUpdate == true) {
+		this.ShowChangeEdit = false;
+		this.SingleData = data;
+		this.name = data.name;
+		this.defaultstatus=data.defaultLable;
+		this.featureID = data.id;
+		if (data.isHeuristic == true) {
+		  this.HeuristicChange = false;
+		} else {
+		  this.HeuristicChange = true;
+		}
+		if (data.tumblingWindow != null) {
+		  this.tumblingWindow = data.tumblingWindow;
+		} else {
+		  this.tumblingWindow = "";
+		}
+		if (data.slidingWindow != null) {
+		  this.slidingWindow = data.slidingWindow;
+		} else {
+		  this.slidingWindow = "";
+		}
+  
+		if (data.windowAttribute1 != null) {
+		  this.windowAttribute1 =
+			data.windowAttribute1.elementCode + "," + data.windowAttribute1.uuid;
+		} else {
+		  this.windowAttribute1 = "";
+		}
+		if (data.windowAttribute2 != null) {
+		  this.windowAttribute2 =
+			data.windowAttribute2.elementCode + "," + data.windowAttribute2.uuid;
+		} else {
+		  this.windowAttribute2 = "";
+		}
+		this.featurelevel = data.level;
+		if (data.groupOperation != null) {
+		  this.ToCalculate = data.groupOperation;
+		  if (this.ToCalculate.startsWith("2")) {
+			this.groupByCondition = true;
+		  } else {
+			this.groupByCondition = false;
+		  }
+		} else {
+		  this.ToCalculate = "";
+		}
+		this.isHueristic = data.isHeuristic;
+		if (data.groupOperationColumn != null) {
+		  this.functionAttribute =
+			data.groupOperationColumn.elementCode +
+			"," +
+			data.groupOperationColumn.uuid;
+		} else {
+		  this.functionAttribute = "";
+		}
+  
+		this.featureUpdate = true;
+		this.featureCreate = false;
+		this.featureview = false;
+		this.viewdetails = false;
+		this.setgroupby = data.groupBy;
+	  }
+	  if (this.featuregroup) {
+		this.Allone = true;
+	  }
+	  if (
+		this.ToCalculate != "" &&
+		this.ToCalculate != null &&
+		this.ToCalculate != undefined
+	  ) {
+		this.Calculateone = true;
+	  } else {
+		this.Calculateone = false;
+	  }
+	  this.query = {
+		field: null,
+		operator: null,
+		value: null,
+		modelLabelCode: null,
+		condition: "and",
+		rules: [],
+		label:null
+	  };
+	  this.GetSystemAttribute();
+	  this.buildGroupByDropDown(data);
+	  this.createQueryBuilderConfig();
+	  this.query = data.ruleDto;
+	  if(data.groupOperation!=null){
+		this.LagId=data.groupOperation;
+		this.offset=data.offset;
+	}
+	else{
+		this.LagId='';
+		this.offset='';
+
+	}
+	this.sortednenableSystemAttributeList2=[];
+	this.GetSystemAttribute();
+	if(this.featuregroup!=null || this.featuregroup!="" || this.featuregroup!=undefined){
+		this.ShowAll();
+	}
+	 
+	}
+  
+	CalculateDisplay() {
+	  //Function used to display To Calculate condition fields
+	  this.query = {
+		field: null,
+		operator: null,
+		value: null,
+		modelLabelCode: null,
+		condition: "and",
+		label:null,
+		rules: [],
+	  };
+	  if (this.ToCalculate == "") {
+		this.Calculateone = false;
+		this.functionAttribute = "";
+		this.featuregroup="";
+		this.tumblingWindow="";
+		this.windowAttribute1="";
+		this.windowAttribute2="";
+		this.slidingWindow="";
+		this.Allone=false;
+	  } else {
+		if (this.ToCalculate.startsWith("2")) {
+		  // to hide groupBy clause and realted fields on non aggregated function selection
+		  //Aggregated function will start from '2'
+		  this.groupByCondition = true;
+		} else {
+		  this.groupByCondition = false;
+		}
+		this.Calculateone = true;
+	  }
+	}
+  
+	ShowAll() {
+	  //Function used to display groupby condition fields
+	  if (this.featuregroup == "") {
+		this.Allone = false;
+		this.tumblingWindow = "";
+		this.slidingWindow = "";
+		this.windowAttribute1 = "";
+		this.windowAttribute2 = "";
+	  } else {
+		this.Allone = true;
+	  }
+	}
+  
+	UpdateFeature() {
+	  //Function Used to Update Feature
+	  if (this.name == undefined || this.name == "" || this.name == null) {
+		this.toastrService.clear();
+		this.toastrService.error("Please enter  feature name");
+		return false;
+	  }
+	  if(this.ToCalculate=='206'){
+		if(this.offset== "" || this.offset == null || this.offset == undefined){
+			this.toastrService.error("Please enter offset");
+			return false;
+		}
+	 }
+	  if(this.isHueristic==true){
+		if (this.defaultstatus == undefined || this.defaultstatus == "" || this.defaultstatus == null) {
+			this.toastrService.clear();
+			this.toastrService.error("Please enter default status");
+			return false;
+		  }
+	}
+  
+	  if (
+		this.ToCalculate == "" ||
+		this.ToCalculate == undefined ||
+		this.ToCalculate == null
+	  ) {
+		this.ToCalculate = null;
+	  } else {
+		if (this.ToCalculate.startsWith("2") && this.featuregroup.length == 0) {
+		  this.toastrService.error("Please select group by");
+		  return false;
+		}
+		// this.ToCalculate = this.ToCalculate;
+	  }
+	//   this.functionAttribute = this.functionAttribute;
+	  if (
+		this.functionAttribute == "" ||
+		this.functionAttribute == undefined ||
+		this.functionAttribute == null
+	  ) {
+		this.functionAttributeResult = null;
+		if (
+		  this.ToCalculate != null &&
+		  this.ToCalculate != undefined &&
+		  this.ToCalculate != ""
+		) {
+		  this.toastrService.error("Please select system attribute");
+		  return false;
+		}
+	  } else {
+		this.functionAttributeResult = {
+		  elementCode: this.functionAttribute.split(",")[0],
+		  uuid: this.functionAttribute.split(",")[1],
+		};
+	  }
+	//   this.featuregroup = this.featuregroup;
+	  this.featuregroupResult = [];
+	  if (this.featuregroup) {
+		this.featuregroup.forEach((element) => {
+		  this.featuregroupResult.push({
+			elementCode: "010",
+			uuid: element.uuid,
+		  });
+		});
+	  }
+	  if (
+		this.featuregroup == "" ||
+		this.featuregroup == undefined ||
+		this.featuregroup == null
+	  ) {
+		this.featuregroupResult = null;
+	  } else {
+		// this.featuregroupResult = this.featuregroupResult;
+	  }
+	  if (
+		this.tumblingWindow == "" ||
+		this.tumblingWindow == undefined ||
+		this.tumblingWindow == null
+	  ) {
+		this.tumblingWindow = null;
+	  } else {
+		// this.tumblingWindow = this.tumblingWindow;
+	  }
+	  if (
+		this.slidingWindow == "" ||
+		this.slidingWindow == undefined ||
+		this.slidingWindow == null
+	  ) {
+		this.slidingWindow = null;
+	  } else {
+		// this.slidingWindow = this.slidingWindow;
+	  }
+	//   this.windowAttribute1 = this.windowAttribute1;
+	  if (
+		this.windowAttribute1 == "" ||
+		this.windowAttribute1 == undefined ||
+		this.windowAttribute1 == null
+	  ) {
+		this.windowAttribute1Result = null;
+	  } else {
+		this.windowAttribute1Result = {
+		  elementCode: this.windowAttribute1.split(",")[0],
+		  uuid: this.windowAttribute1.split(",")[1],
+		};
+	  }
+	//   this.windowAttribute2 = this.windowAttribute2;
+	  if (
+		this.windowAttribute2 == "" ||
+		this.windowAttribute2 == undefined ||
+		this.windowAttribute2 == null
+	  ) {
+		this.windowAttribute2Result = null;
+	  } else {
+		this.windowAttribute2Result = {
+		  elementCode: this.windowAttribute2.split(",")[0],
+		  uuid: this.windowAttribute2.split(",")[1],
+		};
+	  }
+	  if (this.tumblingWindow || this.slidingWindow) {
+		if (
+		  this.windowAttribute1 == null ||
+		  this.windowAttribute1 == "" ||
+		  this.windowAttribute1 == undefined
+		) {
+		  this.toastrService.error("Plese Select Date Attribute");
+		  return false;
+		}
+	  }
+	  this.i = 0;
+  
+	  if(this.tumblingWindow=="010")
+		{
+        this.calculatetumbling=15*60;
+		}
+		else if(this.tumblingWindow=="020")
+		{
+        this.calculatetumbling=1*60*60;
+		}
+		else if(this.tumblingWindow=="030")
+		{
+			this.calculatetumbling=1*24*60*60;
+			
+		}
+		else if(this.tumblingWindow=="040")
+		{
+			this.calculatetumbling=30*24*60*60;	
+		}
+		
+		if(this.slidingWindow=="010")
+		{
+			this.calculatesliding=1*60;
+
+		}
+
+		else if(this.slidingWindow=="020")
+		{
+			this.calculatesliding=2*60;
+		}
+
+
+		else if(this.slidingWindow=="030")
+		{
+			this.calculatesliding=5*60;	
+		}
+
+		else if(this.slidingWindow=="040")
+		{
+			this.calculatesliding=15*60;
+		}
+		else if(this.slidingWindow=="050")
+		{
+			this.calculatesliding=1*60*60;
+		}
+		
+		if(this.calculatetumbling < this.calculatesliding)
+			{
+				this.toastrService.error("Sliding window cannot be grater than time window");
+				return false;
+			}
+
+	//   this.isHueristic = this.isHueristic;
+	  var featureID = this.featureID;
+	  var isActive = this.SingleData.isActive;
+	  if (this.isHueristic == true) {
+		if (this.query.rules.length == 0) {
+		  this.toastrService.error("Please add rule.");
+		  return false;
+		}
+	  }
+	  if (this.isHueristic == false && this.query!=null) {
+		if (this.query.rules.length == 0) {
+		  if (
+			this.functionAttribute == null ||
+			this.functionAttribute == "" ||
+			this.functionAttribute == undefined
+		  ) {
+			this.toastrService.error("Please add either rule or tocaculate.");
+			this.ToCalculate = "";
+			return false;
+		  }
+		}
+	  }
+	  if(this.query!=null){
+	  if (this.query.rules.length == 0) {
+		this.fquery = null;
+	  } else {
+		 
+		this.fquery = this.query;
+	  }
+	}
+
+	//   if(this.fquery.rules[0].rules.length==0){
+	// 		this.toastrService.error('No Rule is present for rule set');
+	// 		return false;
+	// 	}
+	if(this.isHueristic==true){
+	for(let i = 0; i <=this.fquery.rules.length-1; i++){
+		if(this.isHueristic==true){
+		if(this.fquery.rules[i].modelLabelCode=='' || this.fquery.rules[i].modelLabelCode==undefined || this.fquery.rules[i].modelLabelCode==null){
+			this.toastrService.error('Please enter ruleset label');
+			return false;
+		}
+	}
+		if(this.fquery.rules[i].rules.length==0){
+			this.toastrService.error('No Rule is present for rule set');
+			return false;
+		}
+		for(let j = 0; j <=this.fquery.rules[i].rules.length-1; j++){
+			if(this.fquery.rules[i].rules[j].field=="0,0"){
+				this.toastrService.error("Either rule field, value or operator is not present");
+				return false;
+			}
+			if(this.fquery.rules[i].rules[j].operator=='null'){
+				this.toastrService.error("Either rule field, value or operator is not present");
+				return false;
+			}
+			if(this.fquery.rules[i].rules[j].value=="" || this.fquery.rules[i].rules[j].value==undefined || this.fquery.rules[i].rules[j].value==null){
+				this.toastrService.error("Either rule field, value or operator is not present");
+				return false;
+			}
+		}
+	}
+}
+		
+	if(this.isHueristic==false){
+		this.defaultstatus=''
+	}
+	if(this.isHueristic!=false){
+		this.offset='';
+	}
+	
+	if(this.ToCalculate=='206'){
+		this.fquery=null;
+	}
+	  var featuresData = {
+		name: this.name,
+		id: featureID,
+		isHeuristic: this.isHueristic,
+		tumblingWindow: this.tumblingWindow,
+		slidingWindow: this.slidingWindow,
+		isActive: isActive,
+		windowAttribute1: this.windowAttribute1Result,
+		windowAttribute2: this.windowAttribute2Result,
+		groupBy: this.featuregroupResult,
+		groupOperation: this.ToCalculate,
+		groupOperationColumn: this.functionAttributeResult,
+		userId: this.logedinuser,
+		ruleDto: this.fquery,
+		defaultLable:this.defaultstatus,
+		offset:this.offset
+	  };
+  
+	  this.FeatureService.UpdateFeature(featuresData).subscribe((res) => {
+		this.result = res;
+		if (this.result.isSuccess == true) {
+		  this.toastrService.success(this.result.message);
+		  this.GetFeature();
+		  this.featureview = true;
+		  this.featureCreate = false;
+		  this.viewdetails = false;
+		  this.featureUpdate = false;
+		  window.scroll(0,0);
+		} else {
+		  this.toastrService.error(this.result.message);
+		  this.result = [];
+		  this.featureview = false;
+		  this.featureCreate = false;
+		  this.viewdetails = false;
+		  this.featureUpdate = true;
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	GetSeedManagementAttributeList() {
+	  this.SourceService.GetSeedManagementAttributeList().subscribe((res) => {
+		if (res) {
+		  this.SeedManagementAttributrList = res;
+		  if (this.SeedManagementAttributrList.isSuccess == true) {
+			this.SeedManagementAttributrList =
+			  this.SeedManagementAttributrList.seedMasterDtoList;
+		  } else {
+		  }
+		} else {
+		  this.SeedManagementAttributrList = [];
+		  this.toastrService.error("No Data Found");
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	GetElementData() {
+	  this.FeatureService.GetElementData().subscribe((res) => {
+		if (res) {
+		  this.GetElementlist = res;
+		  this.GetElementlist = this.GetElementlist.codeMasterDtoList;
+		} else {
+		  this.GetElementlist = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	GetSystemAttributeDate() {
+	  //Function Used to Get System Attribute List
+	  this.systemattributeservice.GetSystemAttributeDate().subscribe((res) => {
+		if (res) {
+		  this.SystemAttributedateList = res;
+		  this.SystemAttributedateList =
+			this.SystemAttributedateList.attributelist;
+		} else {
+		  this.SystemAttributedateList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	GetsystemDataTimeValue() {
+	  for (this.dd in this.systemAttributeLists) {
+		if (
+		  this.systemAttributeLists[this.dd].type == "501" ||
+		  this.systemAttributeLists[this.dd].type == "502" ||
+		  this.systemAttributeLists[this.dd].type == "503" ||
+		  this.systemAttributeLists[this.dd].type == "504" ||
+		  this.systemAttributeLists[this.dd].type == "505"
+		) {
+		  this.val = this.systemAttributeLists[this.dd].type;
+		  this.datevalues.push(this.val);
+		}
+	  }
+	//   this.datevalues;
+	}
+  
+	sortedsystemAttributeLists: any = [];
+	sortedseedList: any = [];
+	GetSystemDateSeedAttribute() {
+	  this.FeatureService.GetSystemDateSeedAttribute().subscribe((res) => {
+		if (res) {
+		  this.GetSystemDateSeedAttributeList = res;
+		  this.GetSystemDateSeedAttributeList =
+			this.GetSystemDateSeedAttributeList.elementMap;
+  
+		  for (this.datavalue in this.GetSystemDateSeedAttributeList) {
+			// this.datavalue = this.datavalue;
+			if (this.datavalue == "010") {
+			  this.systemAttributeLists =
+				this.GetSystemDateSeedAttributeList[this.datavalue];
+			  this.sortedsystemAttributeLists = this.systemAttributeLists.sort(
+				(t1, t2) => {
+				  const name1 = t1.name.toLowerCase();
+				  const name2 = t2.name.toLowerCase();
+				  if (name1 > name2) {
+					return 1;
+				  }
+				  if (name1 < name2) {
+					return -1;
+				  }
+				  return 0;
+				}
+			  );
+			} else if (this.datavalue == "040") {
+			  this.seedeList =
+				this.GetSystemDateSeedAttributeList[this.datavalue];
+			  this.sortedseedList = this.seedeList.sort((t1, t2) => {
+				const name1 = t1.name.toLowerCase();
+				const name2 = t2.name.toLowerCase();
+				if (name1 > name2) {
+				  return 1;
+				}
+				if (name1 < name2) {
+				  return -1;
+				}
+				return 0;
+			  });
+			}
+			this.datavalue2 = this.GetSystemDateSeedAttributeList[this.datavalue];
+			for (this.datavalue1 in this.systemAttributeList) {
+			  break;
+			}
+		  }
+		//   this.datavalue1;
+		//   this.systemAttributeLists;
+		//   this.featureList;
+		} else {
+		  this.GetSystemDateSeedAttributeList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	sortedseedtimeList: any = [];
+	GetSystemSeedAttribute() {
+	  this.FeatureService.GetSystemSeedAttribute().subscribe((res) => {
+		if (res) {
+		  this.GetSystemSeedAttributeList = res;
+		  this.GetSystemSeedAttributeList =
+			this.GetSystemSeedAttributeList.elementMap;
+		  for (this.datetimevalue in this.GetSystemSeedAttributeList) {
+			// this.datetimevalue = this.datetimevalue;
+			if (this.datetimevalue == "040") {
+			  this.SeedCategory = this.datetimevalue;
+			  this.seedetimeList =
+				this.GetSystemSeedAttributeList[this.datetimevalue];
+			  this.sortedseedtimeList = this.seedetimeList.sort((t1, t2) => {
+				const name1 = t1.name.toLowerCase();
+				const name2 = t2.name.toLowerCase();
+				if (name1 > name2) {
+				  return 1;
+				}
+				if (name1 < name2) {
+				  return -1;
+				}
+				return 0;
+			  });
+			}
+			this.datetimevalue2 =
+			  this.GetSystemSeedAttributeList[this.datetimevalue];
+			for (this.datetimevalue1 in this.systemAttributeList) {
+			  break;
+			}
+		  }
+		} else {
+		  this.GetSystemSeedAttributeList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	sortedsystemAttributetimeLists: any = [];
+	sortedseedetimeList: any = [];
+	GetSystemTimeSeedAttribute() {
+	  this.FeatureService.GetSystemTimeSeedAttribute().subscribe((res) => {
+		if (res) {
+		  this.GetSystemTimeSeedAttributeList = res;
+		  this.GetSystemTimeSeedAttributeList =
+			this.GetSystemTimeSeedAttributeList.elementMap;
+		  for (this.datetimevalue in this.GetSystemTimeSeedAttributeList) {
+			// this.datetimevalue = this.datetimevalue;
+  
+			if (this.datetimevalue == "010") {
+			  this.systemAttributetimeLists =
+				this.GetSystemTimeSeedAttributeList[this.datetimevalue];
+			  this.sortedsystemAttributetimeLists =
+				this.systemAttributetimeLists.sort((t1, t2) => {
+				  const name1 = t1.name.toLowerCase();
+				  const name2 = t2.name.toLowerCase();
+				  if (name1 > name2) {
+					return 1;
+				  }
+				  if (name1 < name2) {
+					return -1;
+				  }
+				  return 0;
+				});
+			} else if (this.datetimevalue == "040") {
+			  this.seedetimeList =
+				this.GetSystemTimeSeedAttributeList[this.datetimevalue];
+			  this.sortedseedetimeList = this.seedetimeList.sort((t1, t2) => {
+				const name1 = t1.name.toLowerCase();
+				const name2 = t2.name.toLowerCase();
+				if (name1 > name2) {
+				  return 1;
+				}
+				if (name1 < name2) {
+				  return -1;
+				}
+				return 0;
+			  });
+			}
+			this.datetimevalue2 =
+			  this.GetSystemTimeSeedAttributeList[this.datetimevalue];
+			for (this.datetimevalue1 in this.systemAttributeList) {
+			  break;
+			}
+		  }
+		//   this.datetimevalue1;
+		//   this.systemAttributetimeLists;
+		//   this.seedetimeList;
+		} else {
+		  this.GetSystemTimeSeedAttributeList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	GetSystemAttributeTime() {
+	  this.systemattributeservice.GetSystemAttributeTime().subscribe((res) => {
+		if (res) {
+		  this.SystemAttributetimeList = res;
+		  this.SystemAttributetimeList =
+			this.SystemAttributetimeList.attributelist;
+		} else {
+		  this.SystemAttributetimeList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  ssdatattt:any=[];
+  disabled = false;
+	sortedSystemAttributeList: any = [];
+	isDropdownDisabled:any='';
+	
+	sortednenableSystemAttributeList1:any=[];
+	sortednenableSystemAttributeList2:any=[];
+	GetSystemAttribute() {
+	  this.systemattributeservice.GetSystemAttribute().subscribe((res) => {
+		if (res) {
+		  this.SystemAttributeList = res;
+		  this.SystemAttributeList = this.SystemAttributeList.attributelist;
+		  this.ssdatattt=this.sortedSystemAttributeList.isActive=="false";
+		  
+		  this.sortedSystemAttributeList = this.SystemAttributeList.sort(
+			(t1, t2) => {
+			  const name1 = t1.name.toLowerCase();
+			  const name2 = t2.name.toLowerCase();
+			  if (name1 > name2) {
+				return 1;
+			  }
+			  if (name1 < name2) {
+				return -1;
+			  }
+			  return 0;
+			}
+		  );
+		  
+
+
+		} else {
+		  this.SystemAttributeList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	  this.sortednenableSystemAttributeList=this.sortedSystemAttributeList;
+for ( this.sortednenableSystemAttributeList1 of this.sortednenableSystemAttributeList) {
+	if (this.sortednenableSystemAttributeList1.isActive ==true) {
+	  this.sortednenableSystemAttributeList2.push(this.sortednenableSystemAttributeList1);
+	  
+	  
+	}
+  }
+	}
+  
+	GetSystemFunction() {
+	  this.FeatureService.GetSystemFunction().subscribe((res) => {
+		if (res) {
+		  this.functionlist = res;
+		  this.functionlist = this.functionlist.systemFunctionList;
+		} else {
+		  this.functionlist = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	sortedtimewindowList: any = [];
+	GetTimeWindow() {
+	  this.FeatureService.GetTimeWindow().subscribe((res) => {
+		if (res) {
+		  this.timewindowList = res;
+		  this.timewindowList = this.timewindowList.codeMasterDtoList;
+		  this.sortedtimewindowList = this.timewindowList.sort((t1, t2) => {
+			const name1 = t1.cdNm1.toLowerCase();
+			const name2 = t2.cdNm1.toLowerCase();
+			if (name1 > name2) {
+			  return 1;
+			}
+			if (name1 < name2) {
+			  return -1;
+			}
+			return 0;
+		  });
+		} else {
+		  this.timewindowList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+	sortedslidingwindowList: any = [];
+	GetSlidingWindow() {
+	  this.FeatureService.GetSlidingWindow().subscribe((res) => {
+		if (res) {
+		  this.slidingwindowList = res;
+		  this.slidingwindowList = this.slidingwindowList.codeMasterDtoList;
+		  this.sortedslidingwindowList = this.slidingwindowList;
+		} else {
+		  this.slidingwindowList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	updateHueristic() {
+	  if (this.isHueristic == false) {
+		this.isHueristic = true;
+	  } else {
+		this.isHueristic = false;
+	  }
+	}
+	sortedMlmodelList: any = [];
+	GetMlModels() {
+	  this.MLModelService.GetMlModels().subscribe((res) => {
+		if (res) {
+		  this.MlmodelList = res;
+		  this.MlmodelList = this.MlmodelList.modelList;
+		  this.sortedMlmodelList = this.MlmodelList.sort((t1, t2) => {
+			const name1 = t1.name.toLowerCase();
+			const name2 = t2.name.toLowerCase();
+			if (name1 > name2) {
+			  return 1;
+			}
+			if (name1 < name2) {
+			  return -1;
+			}
+			return 0;
+		  });
+		} else {
+		  this.MlmodelList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	sortedGetToCalculateList: any = [];
+	GetToCalculate() {
+	  this.FeatureService.GetToCalculate().subscribe((res) => {
+		if (res) {
+		  this.GetToCalculateList = res;
+		  this.GetToCalculateList = this.GetToCalculateList.codeMasterDtoList;
+		  this.sortedGetToCalculateList = this.GetToCalculateList.sort(
+			(t1, t2) => {
+			  const name1 = t1.cdNm1.toLowerCase();
+			  const name2 = t2.cdNm1.toLowerCase();
+			  if (name1 > name2) {
+				return 1;
+			  }
+			  if (name1 < name2) {
+				return -1;
+			  }
+			  return 0;
+			}
+		  );
+		} else {
+		  this.GetToCalculateList = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	onCheckValidation(event: any) {
+	  const regexpNumber = /[a-z0-9A-Z]*[^\s\t\$\%\*\@\&\#\!\-\_\?\+\~\^]/;
+	  let inputCharacter = String.fromCharCode(event.charCode);
+	  if (event.keyCode != 8 && !regexpNumber.test(inputCharacter)) {
+		event.preventDefault();
+	  }
+
+	
+	}
+
+	onPasteCheckValidation(event: ClipboardEvent) {
+		let clipboardData = event.clipboardData;
+		let regexp = new RegExp('[a-z0-9A-Z]*[^\s\t\$\%\*\@\&\#\!\-\_\?\+\~\^/ ]');
+		let pastedText = clipboardData.getData('text');
+		let test = regexp.test(pastedText);
+		this.name = pastedText.replace(/[^a-zA-Z0-9-().]/g, '');
+		(<HTMLInputElement>document.getElementById('bindingId')).value = this.name;
+		if (test) {
+			event.preventDefault();
+		}
+	}
+  
+	showdataattribute(data) {
+	  var value = data;
+	  if (value != undefined || value != "" || value != null) {
+		this.windowAttribute1show = true;
+	  } else {
+		this.windowAttribute1show = false;
+	  }
+	}
+  
+	public changeListener(files: FileList) {
+	  this.filesname = files[0];
+	}
+   
+	isHeuristic:any='';
+	DeleteMLModal(template: TemplateRef<any>, data) {
+	  if (this.FinalAccessRole[0].canDelete == true) {
+		this.DeleteId = data.id;
+		this.isHeuristic=data.isHeuristic;
+		this.modalRef = this.modalService.show(template, {
+		  class: "modal-sm",
+		});
+	  }
+	}
+  
+	DeleteFeature(data) {
+	  var Senddata = {
+		id: this.DeleteId,
+		userId: this.logedinuser,
+		isHeuristic:this.isHeuristic
+	  };
+	  this.FeatureService.DeleteFeature(Senddata).subscribe((respon) => {
+		this.deleteresult = respon;
+		if (this.deleteresult.isSuccess == true) {
+		  this.modalRef.hide();
+		  this.GetFeature();
+		  this.toastrService.success(this.deleteresult.message);
+		  this.featureview = true;
+		  this.featureCreate = false;
+		  this.viewdetails = false;
+		  this.featureUpdate = false;
+		} else {
+		  this.modalRef.hide();
+		  this.toastrService.error(this.deleteresult.message);
+		  this.featureview = true;
+		  this.featureCreate = false;
+		  this.viewdetails = false;
+		  this.featureUpdate = false;
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	declineBoxSecor() {
+	  this.modalRef.hide();
+	  this.rows=[];
+	  this.GetFeature();
+	}
+  
+	//  ************************Function to Reset Form (Rajeev Jha 0n 29-09-21)****************************
+	Reset() {
+	  this.GetToCalculate();
+	  this.GetSystemAttribute();
+	  this.GetOperator();
+	  this.GetElementData();
+	  this.GetMlModels();
+	  this.GetSlidingWindow();
+	  this.GetTimeWindow();
+	  this.GetSystemAttributeDate();
+	  this.GetSystemAttributeTime();
+	  this.GetSystemFunction();
+	  this.GetSeedManagementAttributeList();
+	  this.GetAllElementAttribute();
+	  this.GetSystemSeedAttribute();
+	  this.GetSystemTimeSeedAttribute();
+	  this.GetSystemDateSeedAttribute();
+	  this.ResetHeuristic();
+	  this.togglecreate = false;
+	  this.name = "";
+	  this.ToCalculate = "";
+	  this.functionAttribute = "";
+	  this.featuregroup = "";
+	  this.tumblingWindow = "";
+	  this.windowAttribute1 = "";
+	  this.windowAttribute2 = "";
+	  this.slidingWindow = "";
+	  this.query = {
+		field: null,
+		operator: null,
+		value: null,
+		modelLabelCode: null,
+		condition: "and",
+		rules: [],
+		label:null
+	  };
+	  this.offset='';
+	  this.LagId='';
+	}
+  
+	ActivateMlModal(template: TemplateRef<any>, data) {
+	  if (this.FinalAccessRole[0].canActivate == true) {
+		this.modalRef = this.modalService.show(template, {
+		  class: "modal-sm",
+		});
+	  }
+	}
+  
+	InActivateMlModal(template: TemplateRef<any>, data) {
+	  if (this.FinalAccessRole[0].canActivate == true) {
+		this.modalRef = this.modalService.show(template, {
+		  class: "modal-sm",
+		});
+	  }
+	}
+  
+	ActivateFeature(data) {
+	  var senddata = {
+		elementName: "feature",
+		id: data.id,
+		userId: this.logedinuser,
+		isActive: !data.isActive,
+	  };
+	  this.FeatureService.ActivateFeature(senddata).subscribe((res) => {
+		this.result = res;
+		if (this.result.isSuccess == true) {
+		  this.toastrService.clear();
+		  this.toastrService.success(this.result.message);
+		  window.scrollTo(0, 0);
+		  this.modalRef.hide();
+		  this.GetFeature();
+		} else {
+		  this.toastrService.error(this.result.message);
+		  this.modalRef.hide();
+		  this.rows=[];
+		  this.GetFeature();
+		  this.result = [];
+		}
+	  },(error)=>{
+		this.error=error;
+		 this.toastrService.clear();
+		this.toastrService.error(error)
+	  });
+	}
+  
+	closeFeature() {
+	  this.featureview = true;
+	  this.featureCreate = false;
+	  this.viewdetails = false;
+	  this.featureUpdate = false;
+	  this.GetFeature();
+	  window.scrollTo(0, 0);
+	}
+  
+	ShowTimeAttribute(data) {
+	  this.ShowTimeAttributeField = false;
+	  var Data = data.split(",")[2];
+	  if (
+		Data == "500" ||
+		Data == "501" ||
+		Data == "502" ||
+		Data == "503" ||
+		Data == "504" ||
+		Data == "505" ||
+		Data == "506"
+	  ) {
+		this.ShowTimeAttributeField = true;
+		this.windowAttribute2 = "";
+	  } else {
+		this.windowAttribute2 = "";
+		this.ShowTimeAttributeField = false;
+	  }
+	}
+  
+	ChangeEdit(data) {
+	  if (data == "true") {
+		this.ShowChangeEdit = false;
+		// this.windowAttribute1 = this.windowAttribute1;
+		// this.windowAttribute2 = this.windowAttribute2;
+	  } else {
+		this.ShowChangeEdit = false;
+		this.windowAttribute1 = "";
+		this.windowAttribute2 = "";
+	  }
+	}
+  
+	buildGroupByDropDown(data) {
+	  if (data.groupBy != null) {
+		this.featuregroup = [];
+		data.groupBy.forEach((groupElement) => {
+		  if (groupElement.elementCode == "010") {
+			var name = "";
+			for (let sysAttr of this.SystemAttributeList) {
+			  if (groupElement.uuid === sysAttr.uuid) {
+				name = sysAttr.name;
+				break;
+			  }
+			}
+			var obj = {};
+			obj["uuid"] = groupElement.uuid;
+			obj["name"] = name;
+			this.featuregroup.push(obj);
+		  }
+		});
+	  } else {
+		this.featuregroup = "";
+	  }
+	}
+  }
+  
+  
+  
+
