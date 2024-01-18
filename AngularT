@@ -1,43 +1,35 @@
 import { TestBed, ComponentFixture, async } from '@angular/core/testing';
-import { Component, DebugElement, Directive, Input } from '@angular/core';
+import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { DisableDirective } from './disable.directive';
-
-// Mock the TemplateRef since it's not being used in the test
-@Directive({ selector: '[ngTemplateOutlet]' })
-class MockTemplateRef {
-  @Input() ngTemplateOutletContext: any;
-}
+import { NumbersOnlyDirective } from './numbers-only.directive';
 
 // Create a test component for the directive
 @Component({
   template: `
-    <div disable-elements [hasPermission]="permissions" [hasPermissionScreen]="permissionScreen" [hasPermissionOp]="permissionOp">
-      <button id="testButton">Click me</button>
-    </div>
+    <input appNumbersOnly [(ngModel)]="inputValue" />
   `,
 })
 class TestComponent {
-  permissions: string[] = ['read'];
-  permissionScreen: string = 'someScreen';
-  permissionOp: string = 'AND';
+  inputValue: string;
 }
 
-describe('DisableDirective', () => {
+describe('NumbersOnlyDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let testComponent: TestComponent;
+  let inputElement: HTMLInputElement;
   let directiveElement: DebugElement;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [TestComponent, DisableDirective, MockTemplateRef],
+      declarations: [TestComponent, NumbersOnlyDirective],
     }).compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TestComponent);
     testComponent = fixture.componentInstance;
-    directiveElement = fixture.debugElement.query(By.directive(DisableDirective));
+    inputElement = fixture.debugElement.query(By.directive(NumbersOnlyDirective)).nativeElement;
+    directiveElement = fixture.debugElement.query(By.directive(NumbersOnlyDirective));
     fixture.detectChanges();
   });
 
@@ -45,18 +37,22 @@ describe('DisableDirective', () => {
     expect(directiveElement).toBeTruthy();
   });
 
-  it('should disable button based on permissions', () => {
-    const buttonElement: HTMLButtonElement = fixture.debugElement.query(By.css('#testButton')).nativeElement;
+  it('should allow only numbers in the input', () => {
+    // Simulate typing a valid number
+    inputElement.value = '123';
+    inputElement.dispatchEvent(new Event('input'));
 
-    // Initially, the button should not be disabled
-    expect(buttonElement.disabled).toBeFalsy();
+    // Check if the value is updated correctly
+    expect(testComponent.inputValue).toEqual('123');
+  });
 
-    // Change permissions and trigger change detection
-    testComponent.permissions = ['write'];
-    fixture.detectChanges();
+  it('should prevent input of non-numeric characters', () => {
+    // Simulate typing a non-numeric character
+    inputElement.value = 'abc';
+    inputElement.dispatchEvent(new Event('input'));
 
-    // Now, the button should be disabled based on the new permissions
-    expect(buttonElement.disabled).toBeTruthy();
+    // Check if the value is not updated (non-numeric character is prevented)
+    expect(testComponent.inputValue).toBeUndefined();
   });
 
   // Add more test cases based on your requirements
