@@ -1,7 +1,13 @@
 import { TestBed, ComponentFixture, async } from '@angular/core/testing';
-import { Component, DebugElement } from '@angular/core';
-import { DisableDirective } from './disable.directive';
+import { Component, DebugElement, Directive, Input } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { DisableDirective } from './disable.directive';
+
+// Mock the TemplateRef since it's not being used in the test
+@Directive({ selector: '[ngTemplateOutlet]' })
+class MockTemplateRef {
+  @Input() ngTemplateOutletContext: any;
+}
 
 // Create a test component for the directive
 @Component({
@@ -24,7 +30,7 @@ describe('DisableDirective', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [TestComponent, DisableDirective],
+      declarations: [TestComponent, DisableDirective, MockTemplateRef],
     }).compileComponents();
   }));
 
