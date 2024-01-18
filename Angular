@@ -1,50 +1,61 @@
-// disable.directive.spec.ts
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { Component } from '@angular/core';
+import { TestBed, ComponentFixture, async } from '@angular/core/testing';
+import { Component, DebugElement } from '@angular/core';
 import { DisableDirective } from './disable.directive';
+import { By } from '@angular/platform-browser';
 
+// Create a test component for the directive
 @Component({
-  template: '<button [appDisable]="isDisabled">Click me</button>'
+  template: `
+    <div disable-elements [hasPermission]="permissions" [hasPermissionScreen]="permissionScreen" [hasPermissionOp]="permissionOp">
+      <button id="testButton">Click me</button>
+    </div>
+  `,
 })
 class TestComponent {
-  isDisabled = false;
+  permissions: string[] = ['read'];
+  permissionScreen: string = 'someScreen';
+  permissionOp: string = 'AND';
 }
 
 describe('DisableDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
+  let testComponent: TestComponent;
+  let directiveElement: DebugElement;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [TestComponent, DisableDirective],
+    }).compileComponents();
+  }));
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [TestComponent, DisableDirective]
-    });
-
     fixture = TestBed.createComponent(TestComponent);
-    fixture.detectChanges(); // Trigger initial data binding
+    testComponent = fixture.componentInstance;
+    directiveElement = fixture.debugElement.query(By.directive(DisableDirective));
+    fixture.detectChanges();
   });
 
-  it('should disable the button', () => {
-    const buttonElement: HTMLButtonElement = fixture.nativeElement.querySelector('button');
-
-    expect(buttonElement.disabled).toBeFalsy(); // Initially not disabled
-
-    fixture.componentInstance.isDisabled = true;
-    fixture.detectChanges(); // Trigger change detection
-
-    expect(buttonElement.disabled).toBeTruthy(); // After setting isDisabled to true, the button should be disabled
+  it('should create the directive', () => {
+    expect(directiveElement).toBeTruthy();
   });
 
-  it('should enable the button', () => {
-    const buttonElement: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+  it('should disable button based on permissions', () => {
+    const buttonElement: HTMLButtonElement = fixture.debugElement.query(By.css('#testButton')).nativeElement;
 
-    // Set isDisabled to true initially
-    fixture.componentInstance.isDisabled = true;
+    // Initially, the button should not be disabled
+    expect(buttonElement.disabled).toBeFalsy();
+
+    // Change permissions and trigger change detection
+    testComponent.permissions = ['write'];
     fixture.detectChanges();
 
-    expect(buttonElement.disabled).toBeTruthy(); // Initially disabled
+    // Now, the button should be disabled based on the new permissions
+    expect(buttonElement.disabled).toBeTruthy();
+  });
 
-    fixture.componentInstance.isDisabled = false;
-    fixture.detectChanges(); // Trigger change detection
+  // Add more test cases based on your requirements
 
-    expect(buttonElement.disabled).toBeFalsy(); // After setting isDisabled to false, the button should be enabled
+  afterEach(() => {
+    fixture.destroy();
   });
 });
