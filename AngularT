@@ -1,74 +1,78 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { NumbersOnlyDirective } from './numbers-only.directive';
+import { DisableDirective } from './disable.directive';
+import { PermissionService } from '@app/services/permission.service';
+import { Subject } from 'rxjs/internal/Subject';
 
 @Component({
   template: `
-    <input type="text" appNumbersOnly [(ngModel)]="inputValue" />
+    <div [disable-elements]="permissions" [hasPermission]="permissions" [hasPermissionScreen]="permissionScreenId" [hasPermissionOp]="logicalOp">
+      <input type="text" />
+      <button></button>
+      <select></select>
+    </div>
   `
 })
 class TestComponent {
-  inputValue: string = '';
+  permissions: string[] = ['write', 'update'];
+  permissionScreenId: string = 'exampleScreen';
+  logicalOp: string = 'AND';
 }
 
-describe('NumbersOnlyDirective', () => {
+class MockPermissionService {
+  allPermissions = [
+    { id: 'exampleScreen', write: true, update: false },
+    // Add more permission objects as needed for testing
+  ];
+}
+
+describe('DisableDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let component: TestComponent;
-  let inputEl: DebugElement;
+  let directive: DisableDirective;
+  let debugElement: DebugElement;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [NumbersOnlyDirective, TestComponent],
+      declarations: [DisableDirective, TestComponent],
+      providers: [
+        { provide: PermissionService, useClass: MockPermissionService }
+      ]
     });
 
     fixture = TestBed.createComponent(TestComponent);
     component = fixture.componentInstance;
-    inputEl = fixture.debugElement.query(By.directive(NumbersOnlyDirective));
+    debugElement = fixture.debugElement.query(By.directive(DisableDirective));
+    directive = debugElement.injector.get(DisableDirective);
   });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should allow numeric input', () => {
-    const input = inputEl.nativeElement;
+  it('should disable elements based on permissions', () => {
+    // Ensure the directive is initialized
+    fixture.detectChanges();
 
-    // Simulate keydown events with numeric keys
-    '1234567890'.split('').forEach((key) => {
-      input.value += key;
-      input.dispatchEvent(new KeyboardEvent('keydown', { key }));
-      fixture.detectChanges();
-    });
+    // Check if the elements are initially enabled
+    const inputElement = debugElement.query(By.css('input')).nativeElement;
+    const buttonElement = debugElement.query(By.css('button')).nativeElement;
+    const selectElement = debugElement.query(By.css('select')).nativeElement;
 
-    // Expect the input value to contain only numeric characters
-    expect(input.value).toBe('1234567890');
+    expect(inputElement.disabled).toBe(false);
+    expect(buttonElement.disabled).toBe(false);
+    expect(selectElement.disabled).toBe(false);
+
+    // Change the permissions to have an impact on element disablement
+    component.permissions = ['write'];
+    fixture.detectChanges();
+
+    // Check if the elements are disabled based on the new permissions
+    expect(inputElement.disabled).toBe(false); // write permission is true
+    expect(buttonElement.disabled).toBe(true);  // update permission is false
+    expect(selectElement.disabled).toBe(true);  // update permission is false
   });
 
-  it('should allow special keys like Backspace and Tab', () => {
-    const input = inputEl.nativeElement;
-
-    // Simulate keydown events with special keys
-    ['Backspace', 'Tab'].forEach((key) => {
-      input.dispatchEvent(new KeyboardEvent('keydown', { key }));
-      fixture.detectChanges();
-    });
-
-    // Expect the input value to remain unchanged
-    expect(input.value).toBe('');
-  });
-
-  it('should prevent non-numeric input', () => {
-    const input = inputEl.nativeElement;
-
-    // Simulate keydown events with non-numeric keys
-    'abcxyz!@#$%^&*()_+'.split('').forEach((key) => {
-      input.value += key;
-      input.dispatchEvent(new KeyboardEvent('keydown', { key }));
-      fixture.detectChanges();
-    });
-
-    // Expect the input value to contain only numeric characters
-    expect(input.value).toBe('');
-  });
+  // Add more test cases as needed to cover different scenarios and configurations of the directive
 });
