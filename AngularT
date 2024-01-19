@@ -1,96 +1,74 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, DebugElement } from '@angular/core';
-import { FormsModule, NgControl } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { TrimDirective } from './trim.directive';
+import { NumbersOnlyDirective } from './numbers-only.directive';
 
 @Component({
   template: `
-    <input type="text" trim [(ngModel)]="inputValue" />
+    <input type="text" appNumbersOnly [(ngModel)]="inputValue" />
   `
 })
 class TestComponent {
   inputValue: string = '';
 }
 
-describe('TrimDirective', () => {
+describe('NumbersOnlyDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let component: TestComponent;
   let inputEl: DebugElement;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [FormsModule],
-      declarations: [TrimDirective, TestComponent]
+      declarations: [NumbersOnlyDirective, TestComponent],
     });
 
     fixture = TestBed.createComponent(TestComponent);
     component = fixture.componentInstance;
-    inputEl = fixture.debugElement.query(By.directive(TrimDirective));
+    inputEl = fixture.debugElement.query(By.directive(NumbersOnlyDirective));
   });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should trim input value on focus out', () => {
+  it('should allow numeric input', () => {
     const input = inputEl.nativeElement;
 
-    // Set initial input value with leading and trailing spaces
-    input.value = '   trim me   ';
-    input.dispatchEvent(new Event('focusout'));
-
-    // Expect the input value to be trimmed
-    expect(input.value).toBe('trim me');
-  });
-
-  it('should emit trimmed value through ngModelChange', () => {
-    const input = inputEl.nativeElement;
-
-    // Set initial input value with leading and trailing spaces
-    input.value = '   trim me   ';
-    
-    let emittedValue: string;
-
-    component.inputValue = input.value;
-    fixture.detectChanges();
-
-    // Subscribe to ngModelChange output
-    component.inputValue = '   trim me   ';
-    fixture.detectChanges();
-
-    component.inputValue = 'trim me';
-    fixture.detectChanges();
-
-    component.inputValue = '   trim me   ';
-    fixture.detectChanges();
-
-    component.inputValue = 'trim me';
-    fixture.detectChanges();
-
-    component.inputValue = '   trim me   ';
-    fixture.detectChanges();
-
-    component.ngModelChange.subscribe((value: string) => {
-      emittedValue = value;
+    // Simulate keydown events with numeric keys
+    '1234567890'.split('').forEach((key) => {
+      input.value += key;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key }));
+      fixture.detectChanges();
     });
 
-    // Trigger focus out event
-    input.dispatchEvent(new Event('focusout'));
-
-    // Expect the emitted value to be the trimmed input value
-    expect(emittedValue).toBe('trim me');
+    // Expect the input value to contain only numeric characters
+    expect(input.value).toBe('1234567890');
   });
 
-  it('should set trimmed value to NgControl', () => {
+  it('should allow special keys like Backspace and Tab', () => {
     const input = inputEl.nativeElement;
 
-    // Set initial input value with leading and trailing spaces
-    input.value = '   trim me   ';
-    input.dispatchEvent(new Event('focusout'));
+    // Simulate keydown events with special keys
+    ['Backspace', 'Tab'].forEach((key) => {
+      input.dispatchEvent(new KeyboardEvent('keydown', { key }));
+      fixture.detectChanges();
+    });
 
-    // Expect the NgControl value to be the trimmed input value
-    const ngControl: NgControl = TestBed.inject(NgControl);
-    expect(ngControl.control?.value).toBe('trim me');
+    // Expect the input value to remain unchanged
+    expect(input.value).toBe('');
+  });
+
+  it('should prevent non-numeric input', () => {
+    const input = inputEl.nativeElement;
+
+    // Simulate keydown events with non-numeric keys
+    'abcxyz!@#$%^&*()_+'.split('').forEach((key) => {
+      input.value += key;
+      input.dispatchEvent(new KeyboardEvent('keydown', { key }));
+      fixture.detectChanges();
+    });
+
+    // Expect the input value to contain only numeric characters
+    expect(input.value).toBe('');
   });
 });
