@@ -1,66 +1,96 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, DebugElement } from '@angular/core';
+import { FormsModule, NgControl } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { NumberDirective } from './number.directive';
+import { TrimDirective } from './trim.directive';
 
 @Component({
   template: `
-    <input type="text" numbersOnly [(ngModel)]="inputValue" />
+    <input type="text" trim [(ngModel)]="inputValue" />
   `
 })
 class TestComponent {
   inputValue: string = '';
 }
 
-describe('NumberDirective', () => {
+describe('TrimDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let component: TestComponent;
   let inputEl: DebugElement;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [NumberDirective, TestComponent]
+      imports: [FormsModule],
+      declarations: [TrimDirective, TestComponent]
     });
 
     fixture = TestBed.createComponent(TestComponent);
     component = fixture.componentInstance;
-    inputEl = fixture.debugElement.query(By.directive(NumberDirective));
+    inputEl = fixture.debugElement.query(By.directive(TrimDirective));
   });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should restrict input to numbers only', () => {
+  it('should trim input value on focus out', () => {
     const input = inputEl.nativeElement;
 
-    // Simulate user input
-    input.value = 'abc123def456';
-    input.dispatchEvent(new Event('input'));
+    // Set initial input value with leading and trailing spaces
+    input.value = '   trim me   ';
+    input.dispatchEvent(new Event('focusout'));
 
-    // Expect the input value to be stripped of non-numeric characters
-    expect(input.value).toBe('123456');
+    // Expect the input value to be trimmed
+    expect(input.value).toBe('trim me');
   });
 
-  it('should not stop event propagation if input is unchanged', () => {
+  it('should emit trimmed value through ngModelChange', () => {
     const input = inputEl.nativeElement;
 
-    // Simulate user input with no change
-    input.value = '123';
-    input.dispatchEvent(new Event('input'));
+    // Set initial input value with leading and trailing spaces
+    input.value = '   trim me   ';
+    
+    let emittedValue: string;
 
-    // Expect the input value to remain the same
-    expect(input.value).toBe('123');
+    component.inputValue = input.value;
+    fixture.detectChanges();
+
+    // Subscribe to ngModelChange output
+    component.inputValue = '   trim me   ';
+    fixture.detectChanges();
+
+    component.inputValue = 'trim me';
+    fixture.detectChanges();
+
+    component.inputValue = '   trim me   ';
+    fixture.detectChanges();
+
+    component.inputValue = 'trim me';
+    fixture.detectChanges();
+
+    component.inputValue = '   trim me   ';
+    fixture.detectChanges();
+
+    component.ngModelChange.subscribe((value: string) => {
+      emittedValue = value;
+    });
+
+    // Trigger focus out event
+    input.dispatchEvent(new Event('focusout'));
+
+    // Expect the emitted value to be the trimmed input value
+    expect(emittedValue).toBe('trim me');
   });
 
-  it('should stop event propagation if input is changed', () => {
+  it('should set trimmed value to NgControl', () => {
     const input = inputEl.nativeElement;
 
-    // Simulate user input with a change
-    input.value = 'abc123def456';
-    input.dispatchEvent(new Event('input'));
+    // Set initial input value with leading and trailing spaces
+    input.value = '   trim me   ';
+    input.dispatchEvent(new Event('focusout'));
 
-    // Expect the input value to be stripped of non-numeric characters
-    expect(input.value).toBe('123456');
+    // Expect the NgControl value to be the trimmed input value
+    const ngControl: NgControl = TestBed.inject(NgControl);
+    expect(ngControl.control?.value).toBe('trim me');
   });
 });
