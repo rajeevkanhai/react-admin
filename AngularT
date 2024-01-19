@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, TemplateRef, ViewContainerRef } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { DisableDirective } from './disable.directive';
 import { PermissionService } from '@app/services/permission.service';
@@ -27,6 +27,14 @@ class MockPermissionService {
   ];
 }
 
+class MockViewContainerRef {
+  createEmbeddedView() {}
+}
+
+class MockTemplateRef {
+  createEmbeddedView() {}
+}
+
 describe('DisableDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let component: TestComponent;
@@ -37,7 +45,9 @@ describe('DisableDirective', () => {
     TestBed.configureTestingModule({
       declarations: [DisableDirective, TestComponent],
       providers: [
-        { provide: PermissionService, useClass: MockPermissionService }
+        { provide: PermissionService, useClass: MockPermissionService },
+        { provide: ViewContainerRef, useClass: MockViewContainerRef },
+        { provide: TemplateRef, useClass: MockTemplateRef }
       ]
     });
 
