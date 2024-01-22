@@ -1,16 +1,34 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component } from '@angular/core';
+import { Component, Directive, TemplateRef, ViewContainerRef } from '@angular/core';
+import { ComponentFixture, TestBed, tick } from '@angular/core/testing';
 import { DisableDirective } from './disable.directive';
 import { PermissionService } from '@app/services/permission.service';
 
 @Component({
   template: `
-    <div [disable-elements]="true" [hasPermission]="['read']">
-      <button>Click me</button>
-    </div>
+    <ng-container *disable-elements="{
+      hasPermission: ['read'],
+      hasPermissionScreen: 'exampleScreen',
+      hasPermissionOp: 'AND'
+    }">
+      <button id="testButton">Click me</button>
+    </ng-container>
   `,
 })
 class TestComponent {}
+
+@Directive({
+  selector: '[disable-elements]',
+})
+class TestDirective extends DisableDirective {
+  constructor(
+    el: ElementRef,
+    templateRef: TemplateRef<any>,
+    viewContainer: ViewContainerRef,
+    permissionService: PermissionService
+  ) {
+    super(el, templateRef, viewContainer, permissionService);
+  }
+}
 
 describe('DisableDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
@@ -21,7 +39,7 @@ describe('DisableDirective', () => {
     const spy = jasmine.createSpyObj('PermissionService', ['get allPermissions']);
 
     TestBed.configureTestingModule({
-      declarations: [DisableDirective, TestComponent],
+      declarations: [DisableDirective, TestDirective, TestComponent],
       providers: [{ provide: PermissionService, useValue: spy }],
     });
 
@@ -31,20 +49,22 @@ describe('DisableDirective', () => {
   });
 
   it('should disable button based on permissions', () => {
-    const directiveElement = fixture.debugElement.query(By.directive(DisableDirective));
+    const directiveElement = fixture.debugElement.query(By.directive(TestDirective));
 
     // Simulate the ngOnInit lifecycle hook
-    directiveElement.injector.get(DisableDirective).ngOnInit();
+    directiveElement.injector.get(TestDirective).ngOnInit();
 
     // Trigger change detection
     fixture.detectChanges();
+    tick();
 
-    const buttonElement = fixture.debugElement.query(By.css('button')).nativeElement;
+    const buttonElement = fixture.debugElement.query(By.css('#testButton')).nativeElement;
     expect(buttonElement.disabled).toBe(true);
 
     // Simulate changes to permissions
     component['hasPermission'] = ['write'];
     fixture.detectChanges();
+    tick();
 
     expect(buttonElement.disabled).toBe(false);
   });
