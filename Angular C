@@ -1,115 +1,96 @@
-import { Directive, ElementRef, Input, OnChanges, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
+import { Directive, Input, TemplateRef, ViewContainerRef, OnInit } from '@angular/core';
 import { PermissionService } from '@app/services/permission.service';
-import { Subject } from 'rxjs/internal/Subject';
+import { Subject } from 'rxjs';
+
 @Directive({
-    selector: '[disable-elements]'
+  // eslint-disable-next-line @angular-eslint/directive-selector
+  selector: '[hasPermission]',
 })
-export class DisableDirective implements OnChanges {
+export class HasPermissionDirective implements OnInit {
+  private isHidden = true;
+  permissions: any = [];
+  permissionObject: any;
+  permissionScreenId: any;
+  logicalOp: string = 'AND';
+  componetDestroyed = new Subject();
 
-    @Input()
-    disable = false;
-    private isHidden = true;
-    permissions: any = [];
-    permissionObject: any;
-    permissionScreenId: any;
-    logicalOp: string = 'AND';
-    componetDestroyed = new Subject();
+  constructor(
+    private templateRef: TemplateRef<any>,
+    private viewContainer: ViewContainerRef,
+    private permissionService: PermissionService,
+  ) {}
 
-    elementTypes = ['input', 'select', 'button'];
+  ngOnInit() {
+    if (this.permissionService.allPermissions) {
+      const foundPermission = this.permissionService.allPermissions.find(
+        item => item.id === this.permissionScreenId,
+      );
+      this.permissionObject = foundPermission;
+      if (this.permissionObject) {
+        this.updateView();
+      }
+    }
+  }
 
-    constructor(
-        private _el: ElementRef,
-        private templateRef: TemplateRef<any>,
-        private viewContainer: ViewContainerRef,
-        private permissionService: PermissionService) { }
+  @Input()
+  set hasPermission(val) {
+    this.permissions = val;
+    if (this.permissionObject) {
+      this.updateView();
+    }
+  }
 
-    ngOnInit() {
-        console.log('permissions directive,', this.permissions);
-        if (this.permissionService.allPermissions) {
-            console.log('ALL PERMISON', this.permissionService.allPermissions);
-            const foundPermission = this.permissionService.allPermissions.find(item => item.id === this.permissionScreenId);
-            this.permissionObject = foundPermission;
-            // this.permissionObject.write = false;
-            // this.permissionObject.update = false;
-            console.log('PEERMISON', this.permissionObject);
-            if (this.permissionObject) {
-                this.readonly();
-            }
+  @Input()
+  set hasPermissionScreen(permScreen) {
+    this.permissionScreenId = permScreen;
+    if (this.permissionObject) {
+      this.updateView();
+    }
+  }
+
+  @Input()
+  set hasPermissionOp(permop) {
+    this.logicalOp = permop;
+    if (this.permissionObject) {
+      this.updateView();
+    }
+  }
+
+  private updateView() {
+    if (this.checkPermission()) {
+      if (this.isHidden) {
+        this.viewContainer.createEmbeddedView(this.templateRef);
+        this.isHidden = false;
+      }
+    } else {
+      this.isHidden = true;
+      this.viewContainer.clear();
+    }
+  }
+
+  private checkPermission() {
+    let hasPermission = false;
+    if (this.permissions.length) {
+      for (const checkPermission of this.permissions) {
+        if (this.permissionObject && this.permissionObject[checkPermission]) {
+          hasPermission = true;
+          if (this.logicalOp === 'OR') {
+            break;
+          }
+        } else {
+          hasPermission = false;
+          if (this.logicalOp === 'AND') {
+            break;
+          }
         }
+      }
     }
+    return hasPermission;
+  }
 
-    readonly() {
-        const elements = this.getElements();
-        this.doReadOnly(elements);
-    }
-
-
-    @Input()
-    set hasPermission(val) {
-        this.permissions = val;
-        if (this.permissionObject) {
-            this.readonly();
-        }
-    }
-
-    @Input()
-    set hasPermissionScreen(permScreen) {
-        this.permissionScreenId = permScreen;
-        console.log('permiScren', permScreen);
-        if (this.permissionObject) {
-            this.readonly();
-        }
-    }
-
-    @Input()
-    set hasPermissionOp(permop) {
-        this.logicalOp = permop;
-        if (this.permissionObject) {
-            this.readonly();
-        }
-    }
-    ngOnChanges(changes: SimpleChanges): void {
-        this.readonly();
-    }
-
-    getElements() {
-        const elements = this._el.nativeElement.
-            querySelectorAll(this.elementTypes.join(','));
-        return elements;
-    }
-
-    doReadOnly(elements) {
-        this.disable = this.checkPermission();
-        for (let i = 0; i < elements.length; i++) {
-            elements[i].disabled = this.disable;
-        }
-    }
-
-    private checkPermission() {
-        let hasPermission = false;
-        if (this.permissions.length) {
-            for (const checkPermission of this.permissions) {
-                if (this.permissionObject && this.permissionObject[checkPermission]) {
-                    hasPermission = true;
-                    if (this.logicalOp === 'OR') {
-                        break;
-                    }
-                } else {
-                    hasPermission = false;
-                    if (this.logicalOp === 'AND') {
-                        break;
-                    }
-                }
-            }
-        }
-        console.log('has permssion', hasPermission);
-        return hasPermission;
-    }
-
-    ngOnDestroy() {
-        this.componetDestroyed.next();
-        this.componetDestroyed.complete();
-        this.componetDestroyed.unsubscribe();
-        // this._store.dispatch(new ClearState());
-    }
+  ngOnDestroy() {
+    this.componetDestroyed.next();
+    this.componetDestroyed.complete();
+    this.componetDestroyed.unsubscribe();
+  }
 }
