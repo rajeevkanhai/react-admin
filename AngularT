@@ -1,87 +1,55 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component, DebugElement, Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
-import { By } from '@angular/platform-browser';
+import { Component } from '@angular/core';
 import { DisableDirective } from './disable.directive';
 import { PermissionService } from '@app/services/permission.service';
 
 @Component({
   template: `
-    <div [disable-elements]="permissions" [hasPermission]="permissions" [hasPermissionScreen]="permissionScreenId" [hasPermissionOp]="logicalOp">
-      <input type="text" />
-      <button></button>
-      <select></select>
+    <div [disable-elements]="true" [hasPermission]="['read']">
+      <button>Click me</button>
     </div>
-  `
+  `,
 })
-class TestComponent {
-  permissions: string[] = ['write', 'update'];
-  permissionScreenId: string = 'exampleScreen';
-  logicalOp: string = 'AND';
-}
-
-@Directive({
-  selector: '[mockDisableElements]'
-})
-class MockDisableDirective {
-  @Input() hasPermission: any;
-  @Input() hasPermissionScreen: any;
-  @Input() hasPermissionOp: any;
-}
-
-class MockPermissionService {
-  allPermissions = [
-    { id: 'exampleScreen', write: true, update: false },
-    // Add more permission objects as needed for testing
-  ];
-}
+class TestComponent {}
 
 describe('DisableDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let component: TestComponent;
-  let debugElement: DebugElement;
+  let permissionServiceSpy: jasmine.SpyObj<PermissionService>;
 
   beforeEach(() => {
+    const spy = jasmine.createSpyObj('PermissionService', ['get allPermissions']);
+
     TestBed.configureTestingModule({
-      declarations: [TestComponent, MockDisableDirective],
-      providers: [
-        { provide: PermissionService, useClass: MockPermissionService }
-      ]
+      declarations: [DisableDirective, TestComponent],
+      providers: [{ provide: PermissionService, useValue: spy }],
     });
 
     fixture = TestBed.createComponent(TestComponent);
     component = fixture.componentInstance;
-    debugElement = fixture.debugElement;
+    permissionServiceSpy = TestBed.inject(PermissionService) as jasmine.SpyObj<PermissionService>;
   });
 
-  it('should create the component', () => {
-    expect(component).toBeTruthy();
-  });
+  it('should disable button based on permissions', () => {
+    const directiveElement = fixture.debugElement.query(By.directive(DisableDirective));
 
-  it('should disable elements based on permissions', () => {
-    // Override the DisableDirective with a mock directive for testing
-    const disableDirective = debugElement.query(By.directive(MockDisableDirective)).injector.get(MockDisableDirective);
+    // Simulate the ngOnInit lifecycle hook
+    directiveElement.injector.get(DisableDirective).ngOnInit();
 
-    // Ensure the directive is initialized
+    // Trigger change detection
     fixture.detectChanges();
 
-    // Check if the elements are initially enabled
-    const inputElement = debugElement.query(By.css('input')).nativeElement;
-    const buttonElement = debugElement.query(By.css('button')).nativeElement;
-    const selectElement = debugElement.query(By.css('select')).nativeElement;
+    const buttonElement = fixture.debugElement.query(By.css('button')).nativeElement;
+    expect(buttonElement.disabled).toBe(true);
 
-    expect(inputElement.disabled).toBe(false);
+    // Simulate changes to permissions
+    component['hasPermission'] = ['write'];
+    fixture.detectChanges();
+
     expect(buttonElement.disabled).toBe(false);
-    expect(selectElement.disabled).toBe(false);
-
-    // Change the permissions to have an impact on element disablement
-    component.permissions = ['write'];
-    fixture.detectChanges();
-
-    // Check if the elements are disabled based on the new permissions
-    expect(inputElement.disabled).toBe(false); // write permission is true
-    expect(buttonElement.disabled).toBe(true);  // update permission is false
-    expect(selectElement.disabled).toBe(true);  // update permission is false
   });
 
-  // Add more test cases as needed to cover different scenarios and configurations of the directive
+  afterEach(() => {
+    // Clean up resources if needed
+  });
 });
