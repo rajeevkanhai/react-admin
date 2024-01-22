@@ -1,7 +1,8 @@
-import { Component, Directive, TemplateRef, ViewContainerRef } from '@angular/core';
+import { Component, Directive, TemplateRef, ViewContainerRef, ElementRef } from '@angular/core';
 import { ComponentFixture, TestBed, tick } from '@angular/core/testing';
 import { DisableDirective } from './disable.directive';
 import { PermissionService } from '@app/services/permission.service';
+import { By } from '@angular/platform-browser';
 
 @Component({
   template: `
@@ -32,7 +33,6 @@ class TestDirective extends DisableDirective {
 
 describe('DisableDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
-  let component: TestComponent;
   let permissionServiceSpy: jasmine.SpyObj<PermissionService>;
 
   beforeEach(() => {
@@ -44,15 +44,11 @@ describe('DisableDirective', () => {
     });
 
     fixture = TestBed.createComponent(TestComponent);
-    component = fixture.componentInstance;
     permissionServiceSpy = TestBed.inject(PermissionService) as jasmine.SpyObj<PermissionService>;
   });
 
   it('should disable button based on permissions', () => {
     const directiveElement = fixture.debugElement.query(By.directive(TestDirective));
-
-    // Simulate the ngOnInit lifecycle hook
-    directiveElement.injector.get(TestDirective).ngOnInit();
 
     // Trigger change detection
     fixture.detectChanges();
@@ -62,7 +58,7 @@ describe('DisableDirective', () => {
     expect(buttonElement.disabled).toBe(true);
 
     // Simulate changes to permissions
-    component['hasPermission'] = ['write'];
+    directiveElement.componentInstance['hasPermission'] = ['write'];
     fixture.detectChanges();
     tick();
 
