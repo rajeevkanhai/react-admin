@@ -1,71 +1,64 @@
-import { Component, Directive, TemplateRef, ViewContainerRef, ElementRef } from '@angular/core';
-import { ComponentFixture, TestBed, tick } from '@angular/core/testing';
-import { DisableDirective } from './disable.directive';
-import { PermissionService } from '@app/services/permission.service';
+import { ComponentFixture, TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing';
+import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+import { HasPermissionDirective } from './has-permission.directive';
+import { PermissionService } from '@app/services/permission.service';
 
+// Dummy component for testing the directive
 @Component({
   template: `
-    <ng-container *disable-elements="{
-      hasPermission: ['read'],
-      hasPermissionScreen: 'exampleScreen',
-      hasPermissionOp: 'AND'
-    }">
-      <button id="testButton">Click me</button>
-    </ng-container>
+    <div *hasPermission="['read']" [hasPermissionScreen]="1" [hasPermissionOp]="'AND'">Content</div>
   `,
 })
 class TestComponent {}
 
-@Directive({
-  selector: '[disable-elements]',
-})
-class TestDirective extends DisableDirective {
-  constructor(
-    el: ElementRef,
-    templateRef: TemplateRef<any>,
-    viewContainer: ViewContainerRef,
-    permissionService: PermissionService
-  ) {
-    super(el, templateRef, viewContainer, permissionService);
-  }
-}
-
-describe('DisableDirective', () => {
+describe('HasPermissionDirective', () => {
+  let component: TestComponent;
   let fixture: ComponentFixture<TestComponent>;
-  let permissionServiceSpy: jasmine.SpyObj<PermissionService>;
+  let debugElement: DebugElement;
 
   beforeEach(() => {
-    const spy = jasmine.createSpyObj('PermissionService', ['get allPermissions']);
-
     TestBed.configureTestingModule({
-      declarations: [DisableDirective, TestDirective, TestComponent],
-      providers: [{ provide: PermissionService, useValue: spy }],
+      declarations: [HasPermissionDirective, TestComponent],
+      providers: [PermissionService, { provide: ComponentFixtureAutoDetect, useValue: true }],
     });
 
     fixture = TestBed.createComponent(TestComponent);
-    permissionServiceSpy = TestBed.inject(PermissionService) as jasmine.SpyObj<PermissionService>;
+    component = fixture.componentInstance;
+    debugElement = fixture.debugElement;
   });
 
-  it('should disable button based on permissions', () => {
-    const directiveElement = fixture.debugElement.query(By.directive(TestDirective));
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+  });
 
-    // Trigger change detection
+  it('should display content when permissions are valid', () => {
+    // Arrange
+    const permissionService = TestBed.inject(PermissionService);
+    permissionService.allPermissions = [{ id: 1, read: true }];
+
+    // Act
     fixture.detectChanges();
-    tick();
 
-    const buttonElement = fixture.debugElement.query(By.css('#testButton')).nativeElement;
-    expect(buttonElement.disabled).toBe(true);
+    // Assert
+    const contentElement = debugElement.query(By.css('div'));
+    expect(contentElement).toBeTruthy();
+    expect(contentElement.nativeElement.textContent).toContain('Content');
+  });
 
-    // Simulate changes to permissions
-    directiveElement.componentInstance['hasPermission'] = ['write'];
+  it('should not display content when permissions are not valid', () => {
+    // Arrange
+    const permissionService = TestBed.inject(PermissionService);
+    permissionService.allPermissions = [{ id: 1, read: false }];
+
+    // Act
     fixture.detectChanges();
-    tick();
 
-    expect(buttonElement.disabled).toBe(false);
+    // Assert
+    const contentElement = debugElement.query(By.css('div'));
+    expect(contentElement).toBeFalsy();
   });
 
-  afterEach(() => {
-    // Clean up resources if needed
-  });
+  // Add more test cases as needed to cover different scenarios and edge cases
 });
