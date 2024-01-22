@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing';
+import { ComponentFixture, TestBed, ComponentFixtureAutoDetect, waitForAsync } from '@angular/core/testing';
 import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
@@ -8,7 +8,9 @@ import { PermissionService } from '@app/services/permission.service';
 // Dummy component for testing the directive
 @Component({
   template: `
-    <div *hasPermission="['read']" [hasPermissionScreen]="1" [hasPermissionOp]="'AND'">Content</div>
+    <ng-container *hasPermission="['read']" [hasPermissionScreen]="1" [hasPermissionOp]="'AND'">
+      <div id="content">Content</div>
+    </ng-container>
   `,
 })
 class TestComponent {}
@@ -18,12 +20,14 @@ describe('HasPermissionDirective', () => {
   let fixture: ComponentFixture<TestComponent>;
   let debugElement: DebugElement;
 
-  beforeEach(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [HasPermissionDirective, TestComponent],
       providers: [PermissionService, { provide: ComponentFixtureAutoDetect, useValue: true }],
-    });
+    }).compileComponents();
+  }));
 
+  beforeEach(() => {
     fixture = TestBed.createComponent(TestComponent);
     component = fixture.componentInstance;
     debugElement = fixture.debugElement;
@@ -33,7 +37,7 @@ describe('HasPermissionDirective', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display content when permissions are valid', () => {
+  it('should display content when permissions are valid with logical AND', () => {
     // Arrange
     const permissionService = TestBed.inject(PermissionService);
     permissionService.allPermissions = [{ id: 1, read: true }];
@@ -42,12 +46,12 @@ describe('HasPermissionDirective', () => {
     fixture.detectChanges();
 
     // Assert
-    const contentElement = debugElement.query(By.css('div'));
+    const contentElement = debugElement.query(By.css('#content'));
     expect(contentElement).toBeTruthy();
     expect(contentElement.nativeElement.textContent).toContain('Content');
   });
 
-  it('should not display content when permissions are not valid', () => {
+  it('should not display content when permissions are not valid with logical AND', () => {
     // Arrange
     const permissionService = TestBed.inject(PermissionService);
     permissionService.allPermissions = [{ id: 1, read: false }];
@@ -56,7 +60,34 @@ describe('HasPermissionDirective', () => {
     fixture.detectChanges();
 
     // Assert
-    const contentElement = debugElement.query(By.css('div'));
+    const contentElement = debugElement.query(By.css('#content'));
+    expect(contentElement).toBeFalsy();
+  });
+
+  it('should display content when permissions are valid with logical OR', () => {
+    // Arrange
+    const permissionService = TestBed.inject(PermissionService);
+    permissionService.allPermissions = [{ id: 1, read: false, write: true }];
+
+    // Act
+    fixture.detectChanges();
+
+    // Assert
+    const contentElement = debugElement.query(By.css('#content'));
+    expect(contentElement).toBeTruthy();
+    expect(contentElement.nativeElement.textContent).toContain('Content');
+  });
+
+  it('should not display content when permissions are not valid with logical OR', () => {
+    // Arrange
+    const permissionService = TestBed.inject(PermissionService);
+    permissionService.allPermissions = [{ id: 1, read: false, write: false }];
+
+    // Act
+    fixture.detectChanges();
+
+    // Assert
+    const contentElement = debugElement.query(By.css('#content'));
     expect(contentElement).toBeFalsy();
   });
 
