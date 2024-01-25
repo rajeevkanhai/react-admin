@@ -1,4 +1,2 @@
-const formGroup = this.headersList.controls[index] as FormGroup;
-Immediately return this expression instead of assigning it to the temporary variable "formGroup".
-
- const formGroup = this.apisList.controls[index] as FormGroup;
+const regex = /^[a-zA-Z0-9_]*$/;
+Use concise character class syntax '\w' instead of '[a-zA-Z0-9_]'.
