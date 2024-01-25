@@ -1,5 +1,4 @@
- const reg = new RegExp('^[a-zA-Z ]+$');
+const formGroup = this.headersList.controls[index] as FormGroup;
+Immediately return this expression instead of assigning it to the temporary variable "formGroup".
 
-
-Use a regular expression literal instead of the 'RegExp' constructor.
-const reg = /^[a-zA-Z ]+$/;
+ const formGroup = this.apisList.controls[index] as FormGroup;
