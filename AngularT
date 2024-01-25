@@ -2,3 +2,4 @@
 
 
 Use a regular expression literal instead of the 'RegExp' constructor.
+const reg = /^[a-zA-Z ]+$/;
