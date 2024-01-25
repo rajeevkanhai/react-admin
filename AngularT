@@ -1,1 +1,2 @@
-const regex = /^\w*$/;
+this.combinedState$ = combineLatest( this._store.pipe(takeUntil(this.componetDestroyed), select(selectFormat)) );
+'combineLatest' is deprecated. Pass arguments in a single array instead `combineLatest([a, b, c])`
