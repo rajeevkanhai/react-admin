@@ -2,29 +2,49 @@
 const regex = new RegExp('(?!^ +$)^.+$')
 Use a regular expression literal instead of the 'RegExp' constructor.
 
+Ans const regex = /^(?!\s*$).+$/;
+
 2
  if (x && x.echo == true) {
 }
 Remove the unnecessary boolean literal.
 
+Ans if (x && x.echo) {
+  // Code here will execute if x.echo is truthy
+}
+
 3
 public aphaNumeric = new RegExp('^[0-9a-zA-Z ]+$');
 Use a regular expression literal instead of the 'RegExp' constructor
+
+Ans public aphaNumeric = /^[0-9a-zA-Z ]+$/;
 
 4
  data = data.replace(new RegExp('"value":""', 'g'), '"value": null');
 Use a regular expression literal instead of the 'RegExp' constructor
 
+Ans data = data.replace(/"value":""/g, '"value": null');
+
 5
  public aphaNumeric = new RegExp('^[0-9a-zA-Z ]+$');
 Use a regular expression literal instead of the 'RegExp' constructor
+
+Ans public aphaNumeric = /^[0-9a-zA-Z ]+$/;
 
 6
 data = data.replace(new RegExp('"value":""', 'g'), '"value": null');
 Use a regular expression literal instead of the 'RegExp' constructor.
 
+Ans data = data.replace(/"value":""/g, '"value": null');
+
+
 7
  keyslist = ([...(listOfMapping.filter(it => it.value != null)), ...(echoList.filter(item => item.value == true))]);
 Remove the unnecessary boolean literal.
+
+Ans keyslist = [
+  ...(listOfMapping.filter(it => it.value !== null)),
+  ...(echoList.filter(item => item.value))
+];
 
 8
