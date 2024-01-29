@@ -1,1 +1,1 @@
-const reg = /^[a-zA-Z ]+$/;
+Use concise character class syntax '\d' instead of '[0-9]'.
