@@ -4,3 +4,11 @@ Use concise character class syntax '\w' instead of '[a-zA-Z0-9_]'.
 
 Ans
 const regex = /^\w*$/;
+
+Q2
+Use concise character class syntax '\w' instead of '[a-zA-Z0-9_]'.
+
+Ans
+
+const regex = /^\w*$/;
+
