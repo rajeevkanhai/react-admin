@@ -1,2 +1,6 @@
-const regex = /^[a-zA-Z0-9_]*$/;
-Use concise character class syntax '\w' instead of '[a-zA-Z0-9_]'.
+this.combinedState$ = combineLatest(
+ this._store.pipe(takeUntil(this.componetDestroyed), select(selectFormat)),
+      this._store.pipe(takeUntil(this.componetDestroyed), select(selectTemplate)),
+    );
+
+'combineLatest' is deprecated. Pass arguments in a single array instead `combineLatest([a, b, c])`
