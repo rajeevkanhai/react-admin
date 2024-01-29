@@ -1,42 +1,30 @@
-const regex = new RegExp('[a-zA-Z0-9_ ]');
-Use a regular expression literal instead of the 'RegExp' constructor
-
-
-const regex = new RegExp('[a-zA-Z0-9_ ]');
+1
+const regex = new RegExp('(?!^ +$)^.+$')
 Use a regular expression literal instead of the 'RegExp' constructor.
 
-
-Use concise character class syntax '\w' instead of '[a-zA-Z0-9_]'
-
-
-public checkApiPath(apiDefinitions) {
-    for (let i = 0; i < apiDefinitions.length; i++) {
-      if (apiDefinitions[i].api.charAt(0) !== '/') {
-        apiDefinitions[i].api = '/' + apiDefinitions[i].api;
-      }
-      if (apiDefinitions[i].host == '') {
-        apiDefinitions[i].host = null;
-      }
-    }
-
-Expected a `for-of` loop instead of a `for` loop with this simple iteration
-
-
-
-const regex = /[a-zA-Z0-9_ ]/;
-
-const regex = /\w/;
-
-public checkApiPath(apiDefinitions) {
-  for (const apiDef of apiDefinitions) {
-    if (apiDef.api.charAt(0) !== '/') {
-      apiDef.api = '/' + apiDef.api;
-    }
-    if (apiDef.host === '') {
-      apiDef.host = null;
-    }
-  }
+2
+ if (x && x.echo == true) {
 }
+Remove the unnecessary boolean literal.
 
+3
+public aphaNumeric = new RegExp('^[0-9a-zA-Z ]+$');
+Use a regular expression literal instead of the 'RegExp' constructor
 
+4
+ data = data.replace(new RegExp('"value":""', 'g'), '"value": null');
+Use a regular expression literal instead of the 'RegExp' constructor
 
+5
+ public aphaNumeric = new RegExp('^[0-9a-zA-Z ]+$');
+Use a regular expression literal instead of the 'RegExp' constructor
+
+6
+data = data.replace(new RegExp('"value":""', 'g'), '"value": null');
+Use a regular expression literal instead of the 'RegExp' constructor.
+
+7
+ keyslist = ([...(listOfMapping.filter(it => it.value != null)), ...(echoList.filter(item => item.value == true))]);
+Remove the unnecessary boolean literal.
+
+8
