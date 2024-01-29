@@ -1,1 +1,2 @@
-const reg = /^[a-zA-Z ]+$/;
+const reg = new RegExp('^[a-z]+$');
+Use a regular expression literal instead of the 'RegExp' constructor
