@@ -1,13 +1,12 @@
 1
-const regex = new RegExp('(?!^ +$)^.+$')
+const regex = new RegExp("(?!^ +$)^.+$")
 Use a regular expression literal instead of the 'RegExp' constructor.
 
 Ans const regex = /^(?!\s*$).+$/;
 
 2
- if (x && x.echo == true) {
-}
-Remove the unnecessary boolean literal.
+const regex =/^[A-Za-z0-9_]+$/;
+Use concise character class syntax '\w' instead of '[A-Za-z0-9_]'.
 
 Ans if (x && x.echo) {
   // Code here will execute if x.echo is truthy
