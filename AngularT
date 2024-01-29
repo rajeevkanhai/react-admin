@@ -8,9 +8,7 @@ Ans const regex = /^(?!\s*$).+$/;
 const regex =/^[A-Za-z0-9_]+$/;
 Use concise character class syntax '\w' instead of '[A-Za-z0-9_]'.
 
-Ans if (x && x.echo) {
-  // Code here will execute if x.echo is truthy
-}
+Ans const regex = /^\w+$/;
 
 3
 public aphaNumeric = new RegExp('^[0-9a-zA-Z ]+$');
