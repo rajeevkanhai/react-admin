@@ -1,6 +1,1 @@
-  const reg = new RegExp('^[0-9]+$');
-Use a regular expression literal instead of the 'RegExp' constructor.
-Use concise character class syntax '\d' instead of '[0-9]'.
-
-const reg = /^\d+$/;
-
+Use concise character class syntax '\w' instead of '[a-zA-Z0-9_]'.
