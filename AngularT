@@ -20,3 +20,23 @@ public checkApiPath(apiDefinitions) {
     }
 
 Expected a `for-of` loop instead of a `for` loop with this simple iteration
+
+
+
+const regex = /[a-zA-Z0-9_ ]/;
+
+const regex = /\w/;
+
+public checkApiPath(apiDefinitions) {
+  for (const apiDef of apiDefinitions) {
+    if (apiDef.api.charAt(0) !== '/') {
+      apiDef.api = '/' + apiDef.api;
+    }
+    if (apiDef.host === '') {
+      apiDef.host = null;
+    }
+  }
+}
+
+
+
