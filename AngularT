@@ -1,3 +1,7 @@
+q
+ updateval = updateval.substr(0, updateval.length - 1);
+'substr' is deprecated. A legacy feature for browser compatibility
+ans
 public aphaNumeric = new RegExp('^[0-9a-zA-Z ]+$');
 Use a regular expression literal instead of the 'RegExp' constructor
 
