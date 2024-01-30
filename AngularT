@@ -20,11 +20,14 @@ ans
 q
  public aphaWithdot = new RegExp('^[a-zA-Z_.]+$');
 Use a regular expression literal instead of the 'RegExp' constructor.
+ans public aphaWithdot = /^[a-zA-Z_.]+$/;
 
 
 q
 
  public aphaNumericLike = new RegExp('^[0-9a-zA-Z%]+$');
+ans public aphaNumericLike = /^[0-9a-zA-Z%]+$/;
 Q
  public aphaNumeric = new RegExp('^[0-9a-zA-Z_ ]+$');
+ans public aphaNumeric = /^[0-9a-zA-Z_ ]+$/;
 
