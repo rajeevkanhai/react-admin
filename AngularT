@@ -2,3 +2,9 @@ public aphaNumeric = new RegExp('^[0-9a-zA-Z ]+$');
 Use a regular expression literal instead of the 'RegExp' constructor
 
 public aphaNumeric = /^[0-9a-zA-Z ]+$/;
+
+
+
+q
+ public reg = new RegExp('^[0-9]+$');
+ Use a regular expression literal instead of the 'RegExp' constructor.
