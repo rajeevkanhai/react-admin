@@ -8,3 +8,5 @@ public aphaNumeric = /^[0-9a-zA-Z ]+$/;
 q
  public reg = new RegExp('^[0-9]+$');
  Use a regular expression literal instead of the 'RegExp' constructor.
+ans
+public reg = /^[0-9]+$/;
