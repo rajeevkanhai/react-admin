@@ -115,3 +115,19 @@ const regex = /^\w*$/;
                   </div>
                 </div>
               </form>
+
+
+
+
+
+<form #myForm="ngForm" (ngSubmit)="onSubmit()">
+  <div *ngFor="let item of items; let i = index" class="form-group">
+    <label for="item{{i}}">Item {{i + 1}}</label>
+    <input type="text" class="form-control" id="item{{i}}" name="item{{i}}" [(ngModel)]="items[i]" required>
+    <div *ngIf="myForm.controls['item' + i].invalid && myForm.controls['item' + i].touched" class="text-danger">
+      Item is required.
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
