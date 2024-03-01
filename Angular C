@@ -1,3 +1,11 @@
+
+<mdb-accordion [flush]="true">
+  <mdb-accordion-item>
+    <ng-template mdbAccordionItemHeader>Accordion Item #1</ng-template>
+    <ng-template mdbAccordionItemBody>
+
+
+
 Q1
 const regex = /^[a-zA-Z0-9_]*$/;
 Use concise character class syntax '\w' instead of '[a-zA-Z0-9_]'.
