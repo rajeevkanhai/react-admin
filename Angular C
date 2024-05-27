@@ -5,6 +5,11 @@ if (nested) {
           .includes(value.toLowerCase());
       }
 
+return record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes(value.toLowerCase());
+
 
 
 
