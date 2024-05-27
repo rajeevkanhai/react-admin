@@ -1,3 +1,17 @@
+if (nested) {
+        return record[dataIndex[0]][dataIndex[1]]
+          .toString()
+          .toLowerCase()
+          .includes(value.toLowerCase());
+      }
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col } from "reactstrap";
 import ModalForm from './Modal';
