@@ -1,106 +1,148 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import AsyncPaginate from 'react-select-async-paginate';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { Table, Input, Button, Form, Popconfirm } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 
-const MyComponent = () => {
-  // State to hold form data
-  const [formData, setFormData] = useState({
-    selectedOption: null,
-    fieldOne: '',
-    fieldTwo: '',
-  });
+const EditableTable = () => {
+  const [dataSource, setDataSource] = useState([]);
+  const [count, setCount] = useState(0);
 
-  // State to hold options for react-select
-  const [options, setOptions] = useState([]);
+  const EditableCell = ({ title, editable, children, dataIndex, record, handleSave, ...restProps }) => {
+    const [editing, setEditing] = useState(false);
+    const [form] = Form.useForm();
 
-  // Fetch options from API
-  const loadOptions = async (search, loadedOptions, { page }) => {
-    const response = await axios.get('https://api.example.com/items', {
-      params: {
-        q: search,
-        page,
-      },
-    });
-
-    const newOptions = response.data.items.map(item => ({
-      label: item.name,
-      value: item.id,
-    }));
-
-    setOptions([...loadedOptions, ...newOptions]);
-
-    return {
-      options: newOptions,
-      hasMore: response.data.hasMore,
-      additional: {
-        page: page + 1,
-      },
-    };
-  };
-
-  // Handle form submit
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const { selectedOption, fieldOne, fieldTwo } = formData;
-
-    const data = {
-      selectedOption: selectedOption.value,
-      fieldOne,
-      fieldTwo,
+    const toggleEdit = () => {
+      setEditing(!editing);
+      form.setFieldsValue({ [dataIndex]: record[dataIndex] });
     };
 
-    try {
-      await axios.post('https://api.example.com/submit', data);
-      alert('Data submitted successfully');
-    } catch (error) {
-      console.error('Error submitting data', error);
+    const save = async () => {
+      try {
+        const values = await form.validateFields();
+        toggleEdit();
+        handleSave({ ...record, ...values });
+      } catch (errInfo) {
+        console.log('Save failed:', errInfo);
+      }
+    };
+
+    let childNode = children;
+
+    if (editable) {
+      childNode = editing ? (
+        <Form.Item
+          style={{ margin: 0 }}
+          name={dataIndex}
+          rules={[
+            {
+              required: true,
+              message: `${title} is required.`,
+            },
+          ]}
+        >
+          <Input onPressEnter={save} onBlur={save} />
+        </Form.Item>
+      ) : (
+        <div
+          className="editable-cell-value-wrap"
+          style={{ paddingRight: 24 }}
+          onClick={toggleEdit}
+        >
+          {children}
+        </div>
+      );
     }
+
+    return <td {...restProps}>{childNode}</td>;
   };
 
-  // Handle input change
-  const handleChange = (name, value) => {
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
+  const handleAdd = () => {
+    const newData = {
+      key: count,
+      name: '',
+      description: '',
+    };
+    setDataSource([...dataSource, newData]);
+    setCount(count + 1);
   };
+
+  const handleDelete = (key) => {
+    const newData = dataSource.filter((item) => item.key !== key);
+    setDataSource(newData);
+  };
+
+  const handleSave = (row) => {
+    const newData = [...dataSource];
+    const index = newData.findIndex((item) => row.key === item.key);
+    const item = newData[index];
+    newData.splice(index, 1, { ...item, ...row });
+    setDataSource(newData);
+  };
+
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      editable: true,
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      editable: true,
+    },
+    {
+      title: 'Operation',
+      dataIndex: 'operation',
+      render: (_, record) =>
+        dataSource.length >= 1 ? (
+          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
+            <Button danger>Delete</Button>
+          </Popconfirm>
+        ) : null,
+    },
+  ];
+
+  const mergedColumns = columns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        editable: col.editable,
+        dataIndex: col.dataIndex,
+        title: col.title,
+        handleSave: handleSave,
+      }),
+    };
+  });
 
   return (
     <div>
-      <h1>CRUD Form with Async Paginate Select</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Select Option:</label>
-          <AsyncPaginate
-            value={formData.selectedOption}
-            loadOptions={loadOptions}
-            onChange={option => handleChange('selectedOption', option)}
-            additional={{
-              page: 1,
-            }}
-          />
-        </div>
-        <div>
-          <label>Field One:</label>
-          <input
-            type="text"
-            value={formData.fieldOne}
-            onChange={e => handleChange('fieldOne', e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Field Two:</label>
-          <input
-            type="text"
-            value={formData.fieldTwo}
-            onChange={e => handleChange('fieldTwo', e.target.value)}
-          />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
+      <Button
+        onClick={handleAdd}
+        type="primary"
+        style={{
+          marginBottom: 16,
+        }}
+        icon={<PlusOutlined />}
+      >
+        Add a row
+      </Button>
+      <Table
+        components={{
+          body: {
+            cell: EditableCell,
+          },
+        }}
+        bordered
+        dataSource={dataSource}
+        columns={mergedColumns}
+        rowClassName="editable-row"
+        pagination={false}
+      />
     </div>
   );
 };
 
-export default MyComponent;
+export default EditableTable;
