@@ -1,3 +1,89 @@
+import React from 'react';
+import { Form, Input, Button, Card } from 'antd';
+
+const jsonSchema = {
+  variables: [
+    {
+      Name: 'test'
+    }
+  ],
+  database: [
+    {
+      name: 'db',
+      variables: [
+        {
+          Hostname: 'value',
+          Username: 'value',
+          Port: 'value'
+        }
+      ]
+    },
+    {
+      name: 'ddb',
+      variables: [
+        {
+          Hostname: 'value',
+          TableName: 'value'
+        }
+      ]
+    }
+  ]
+};
+
+const renderFormFields = (variables, parentName = '') => {
+  return variables.map((variable, index) => {
+    return Object.keys(variable).map((key) => (
+      <Form.Item
+        key={`${parentName}_${index}_${key}`}
+        label={key}
+        name={`${parentName}_${index}_${key}`}
+        rules={[
+          {
+            required: true,
+            message: `Please input ${key}!`
+          }
+        ]}
+      >
+        <Input placeholder={variable[key]} />
+      </Form.Item>
+    ));
+  });
+};
+
+const DynamicForm = () => {
+  const [form] = Form.useForm();
+
+  const handleFinish = (values) => {
+    console.log('Form values:', values);
+  };
+
+  return (
+    <Form form={form} onFinish={handleFinish} layout="vertical">
+      <Card title="Variables">
+        {renderFormFields(jsonSchema.variables)}
+      </Card>
+
+      {jsonSchema.database.map((db, dbIndex) => (
+        <Card key={`db_${dbIndex}`} title={`Database: ${db.name}`}>
+          {renderFormFields(db.variables, db.name)}
+        </Card>
+      ))}
+
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Submit
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
+export default DynamicForm;
+
+
+
+
+
 
 
 
