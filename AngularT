@@ -1,32 +1,58 @@
-import axios from 'axios';
-
-const API_URL = "http://localhost:6010/renosecure/";
-
-class AttributeService {
-
-    getAttribute(){
-        return axios.get(API_URL+'attribute');
-    }
-
-    getAttributeType(){
-        return axios.get(API_URL+'master/'+'1');
-    }
-
-    addItemToState(item){
-        return axios.post(API_URL+'attribute', item);
-    }
-    updateState(item){
-        return axios.put(API_URL+'attribute', item);
-    }
-    deleteItemFromState(senddata){
-        return fetch(API_URL+'attribute',{
-            method: 'delete',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(senddata)
-      });
-    }
+.tree-node {
+  margin-bottom: 20px; /* Add margin for spacing between nodes */
+  position: relative; /* Position relative to allow connectors */
 }
 
-export default new AttributeService()
+/* Parallel nodes */
+.tree-node.parallel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f0f5ff; /* Light blue background */
+  border: 1px solid #1890ff; /* Dashed blue border */
+  padding: 10px;
+  border-radius: 8px; /* Rounded corners */
+  margin-right: 20px; /* Space between parallel nodes */
+  margin-left: 20px; /* Space between parallel nodes */
+}
+
+/* Sequential nodes */
+.tree-node.sequential {
+  display: block; /* Block display to stack vertically */
+  background-color: #fff7e6; /* Light orange background */
+  border: 1px solid #fa8c16; /* Solid orange border */
+  padding: 10px;
+  border-radius: 8px; /* Rounded corners */
+  margin-left: 60px; /* Indentation for child sequential nodes */
+}
+
+/* Connector lines */
+.tree-node:before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background-color: #000; /* Black connector line */
+}
+
+.tree-node.parallel:before {
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%; /* Horizontal line for parallel nodes */
+  height: 2px;
+}
+
+.tree-node.sequential:before {
+  top: -20px;
+  left: 20px;
+  height: 30px; /* Vertical line for sequential nodes */
+  width: 2px;
+}
+body {
+  /* margin: 0; */
+  display: flex;
+  /* place-items: center; */
+  min-width: 320px;
+  min-height: 100vh;
+}
