@@ -1,255 +1,221 @@
-import React from 'react';
-import { Form, Input, Button, Card } from 'antd';
+import { useState } from 'react';
+import { Button, Dropdown, Menu, Select, Card } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
+import './TreeWorkflow.css';
 
-const jsonSchema = {
-  variables: [
-    {
-      Name: 'test'
-    }
-  ],
-  database: [
-    {
-      name: 'db',
-      variables: [
-        {
-          Hostname: 'value',
-          Username: 'value',
-          Port: 'value'
-        }
-      ]
-    },
-    {
-      name: 'ddb',
-      variables: [
-        {
-          Hostname: 'value',
-          TableName: 'value'
-        }
-      ]
-    }
-  ]
-};
+const { Option } = Select;
 
-const renderFormFields = (variables, parentName = '') => {
-  return variables.map((variable, index) => {
-    return Object.keys(variable).map((key) => (
-      <Form.Item
-        key={`${parentName}_${index}_${key}`}
-        label={key}
-        name={`${parentName}_${index}_${key}`}
-        rules={[
-          {
-            required: true,
-            message: `Please input ${key}!`
-          }
-        ]}
-      >
-        <Input placeholder={variable[key]} />
-      </Form.Item>
-    ));
-  });
-};
-
-const DynamicForm = () => {
-  const [form] = Form.useForm();
-
-  const handleFinish = (values) => {
-    console.log('Form values:', values);
-  };
-
-  return (
-    <Form form={form} onFinish={handleFinish} layout="vertical">
-      <Card title="Variables">
-        {renderFormFields(jsonSchema.variables)}
-      </Card>
-
-      {jsonSchema.database.map((db, dbIndex) => (
-        <Card key={`db_${dbIndex}`} title={`Database: ${db.name}`}>
-          {renderFormFields(db.variables, db.name)}
-        </Card>
-      ))}
-
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Submit
-        </Button>
-      </Form.Item>
-    </Form>
-  );
-};
-
-export default DynamicForm;
-
-
-
-
-
-
-
-
-
-let fileName = 'downloaded_file';
-
-      if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
-        const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (fileNameMatch.length === 2) {
-          fileName = fileNameMatch[1];
-        }
-      }
-
-
-
-
-
-
-
-
-
-import React, { useState } from 'react';
-import { Table, Input, Button, Form, Popconfirm } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-
-const EditableTable = () => {
-  const [dataSource, setDataSource] = useState([]);
-  const [count, setCount] = useState(0);
-
-  const EditableCell = ({ title, editable, children, dataIndex, record, handleSave, ...restProps }) => {
-    const [editing, setEditing] = useState(false);
-    const [form] = Form.useForm();
-
-    const toggleEdit = () => {
-      setEditing(!editing);
-      form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-    };
-
-    const save = async () => {
-      try {
-        const values = await form.validateFields();
-        toggleEdit();
-        handleSave({ ...record, ...values });
-      } catch (errInfo) {
-        console.log('Save failed:', errInfo);
-      }
-    };
-
-    let childNode = children;
-
-    if (editable) {
-      childNode = editing ? (
-        <Form.Item
-          style={{ margin: 0 }}
-          name={dataIndex}
-          rules={[
-            {
-              required: true,
-              message: `${title} is required.`,
-            },
-          ]}
-        >
-          <Input onPressEnter={save} onBlur={save} />
-        </Form.Item>
-      ) : (
-        <div
-          className="editable-cell-value-wrap"
-          style={{ paddingRight: 24 }}
-          onClick={toggleEdit}
-        >
-          {children}
-        </div>
-      );
-    }
-
-    return <td {...restProps}>{childNode}</td>;
-  };
-
-  const handleAdd = () => {
-    const newData = {
-      key: count,
-      name: '',
-      description: '',
-    };
-    setDataSource([...dataSource, newData]);
-    setCount(count + 1);
-  };
-
-  const handleDelete = (key) => {
-    const newData = dataSource.filter((item) => item.key !== key);
-    setDataSource(newData);
-  };
-
-  const handleSave = (row) => {
-    const newData = [...dataSource];
-    const index = newData.findIndex((item) => row.key === item.key);
-    const item = newData[index];
-    newData.splice(index, 1, { ...item, ...row });
-    setDataSource(newData);
-  };
-
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      editable: true,
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      editable: true,
-    },
-    {
-      title: 'Operation',
-      dataIndex: 'operation',
-      render: (_, record) =>
-        dataSource.length >= 1 ? (
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
-            <Button danger>Delete</Button>
-          </Popconfirm>
-        ) : null,
-    },
+const TreeWorkflow = () => {
+  const availableServices = [
+    'AUTH_SERVICE',
+    'FRAUD_SERVICE',
+    'GATEWAY_SERVICE',
+    'LOYALTY_SERVICE',
   ];
 
-  const mergedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
+  const [treeData, setTreeData] = useState([]);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [nodeCount, setNodeCount] = useState(0);
+
+  // Helper function to recursively get all services from deleted nodes
+  const getDeletedServices = (node) => {
+    let services = [];
+    if (node.label) services.push(node.label);
+    if (node.children.length > 0) {
+      node.children.forEach((child) => {
+        services = [...services, ...getDeletedServices(child)];
+      });
     }
-    return {
-      ...col,
-      onCell: (record) => ({
-        record,
-        editable: col.editable,
-        dataIndex: col.dataIndex,
-        title: col.title,
-        handleSave: handleSave,
-      }),
+    return services;
+  };
+
+  // Handle Add Service
+  const handleAddService = () => {
+    if (nodeCount < availableServices.length) {
+      const newService = availableServices.find(
+        (service) => !selectedServices.includes(service)
+      );
+      const newNode = {
+        key: Date.now(),
+        label: newService,
+        type: 'root',
+        level: 0,
+        children: [],
+      };
+      setTreeData([...treeData, newNode]);
+      setSelectedServices([...selectedServices, newService]);
+      setNodeCount(1);
+    }
+  };
+
+  // Handle Add Node in Parallel or Sequential
+  const handleAddNode = (type, parentKey) => {
+    if (nodeCount < availableServices.length) {
+      const newService = availableServices.find(
+        (service) => !selectedServices.includes(service)
+      );
+
+      const newNode = {
+        key: Date.now(),
+        label: newService,
+        type: type,
+        level: 0,
+        children: [],
+      };
+
+      const addNodeToTree = (nodes, parentKey, parentLevel) => {
+        return nodes.map((node) => {
+          if (node.key === parentKey) {
+            if (type === 'parallel') {
+              newNode.level = parentLevel;
+              node.children.push(newNode);
+            } else if (type === 'sequential') {
+              newNode.level = parentLevel + 1;
+              node.children.push(newNode);
+            }
+          } else if (node.children.length > 0) {
+            node.children = addNodeToTree(node.children, parentKey, node.level);
+          }
+          return node;
+        });
+      };
+
+      setTreeData(addNodeToTree(treeData, parentKey, 0));
+      setSelectedServices([...selectedServices, newService]);
+      setNodeCount((prevCount) => prevCount + 1);
+    }
+  };
+
+  // Handle Delete Node
+  const handleDeleteNode = (key) => {
+    const deleteNodeFromTree = (nodes, key) => {
+      return nodes.filter((node) => {
+        if (node.key === key) {
+          const deletedServices = getDeletedServices(node);
+          setSelectedServices((prev) =>
+            prev.filter((service) => !deletedServices.includes(service))
+          );
+          setNodeCount((prevCount) => prevCount - deletedServices.length);
+          return false;
+        }
+
+        if (node.children.length > 0) {
+          node.children = deleteNodeFromTree(node.children, key);
+        }
+        return true;
+      });
     };
-  });
+
+    setTreeData(deleteNodeFromTree(treeData, key));
+  };
+
+  // Handle Service Selection
+  const handleSelectService = (key, value) => {
+    const updateServiceLabel = (nodes, key, value) => {
+      return nodes.map((node) => {
+        if (node.key === key) {
+          if (node.label === null) {
+            setSelectedServices([...selectedServices, value]);
+          } else {
+            const updatedServices = selectedServices.map((service) =>
+              service === node.label ? value : service
+            );
+            setSelectedServices(updatedServices);
+          }
+          node.label = value;
+        } else if (node.children.length > 0) {
+          node.children = updateServiceLabel(node.children, key, value);
+        }
+        return node;
+      });
+    };
+
+    setTreeData(updateServiceLabel(treeData, key, value));
+  };
+
+  // Menu for Actions
+  const menu = (node) => (
+    <Menu>
+      <Menu.Item
+        onClick={() => handleAddNode('sequential', node.key)}
+        disabled={
+          !node.label || selectedServices.length >= availableServices.length
+        }
+      >
+        Add Sequential
+      </Menu.Item>
+      <Menu.Item
+        onClick={() => handleAddNode('parallel', node.key)}
+        disabled={
+          !node.label || selectedServices.length >= availableServices.length
+        }
+      >
+        Add Parallel
+      </Menu.Item>
+      <Menu.Item onClick={() => handleDeleteNode(node.key)}>Delete</Menu.Item>
+    </Menu>
+  );
+
+  // Render Tree Nodes
+  const renderTreeNodes = (nodes) =>
+    nodes.map((node) => (
+      <div key={node.key} className={`tree-node ${node.type}`}>
+        <Card
+          title={
+            <Select
+              style={{ width: 200 }}
+              placeholder="Select Service"
+              value={node.label !== null ? node.label : undefined}
+              onChange={(value) => handleSelectService(node.key, value)}
+            >
+              {availableServices
+                .filter((service) => !selectedServices.includes(service))
+                .map((service) => (
+                  <Option key={service} value={service}>
+                    {service}
+                  </Option>
+                ))}
+            </Select>
+          }
+          extra={
+            // <Dropdown
+            //   menu={menu(node)}
+            //   trigger={['click']}
+            //   placement="bottomRight"
+            // >
+            //   <a onClick={(e) => e.preventDefault()}>
+            //     Actions <DownOutlined />
+            //   </a>
+            // </Dropdown>
+            <Dropdown overlay={menu(node)} trigger={['click']}>
+              <a onClick={(e) => e.preventDefault()}>
+                Actions <DownOutlined />
+              </a>
+            </Dropdown>
+          }
+          style={{ marginBottom: '20px' }}
+        >
+          {node.children.length > 0 && (
+            <div className={`children ${node.type}`}>
+              {renderTreeNodes(node.children)}
+            </div>
+          )}
+        </Card>
+      </div>
+    ));
 
   return (
     <div>
-      <Button
-        onClick={handleAdd}
-        type="primary"
-        style={{
-          marginBottom: 16,
-        }}
-        icon={<PlusOutlined />}
-      >
-        Add a row
-      </Button>
-      <Table
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-        bordered
-        dataSource={dataSource}
-        columns={mergedColumns}
-        rowClassName="editable-row"
-        pagination={false}
-      />
+      <div>
+        {treeData.length < 1 && nodeCount < availableServices.length && (
+          <Button onClick={handleAddService} style={{ marginLeft: '10px' }}>
+            Add Service
+          </Button>
+        )}
+      </div>
+      {renderTreeNodes(treeData)}
     </div>
   );
 };
 
-export default EditableTable;
+export default TreeWorkflow;
