@@ -1,0 +1,43 @@
+// Handle Add Node in Parallel or Sequential
+const handleAddNode = (type, parentKey) => {
+  if (nodeCount < availableServices.length) {
+    const newService = availableServices.find(
+      (service) => !selectedServices.includes(service)
+    );
+
+    const newNode = {
+      key: Date.now(),
+      label: newService,
+      type: type,
+      level: 0,
+      children: [],
+    };
+
+    // Function to recursively add a node to the tree
+    const addNodeToTree = (nodes, parentKey, parentLevel) => {
+      return nodes.map((node) => {
+        if (node.key === parentKey) {
+          // Adding a sequential node under the parent node
+          if (type === 'sequential') {
+            newNode.level = parentLevel + 1; // Increment the level for sequential nodes
+            node.children.push(newNode);
+          } 
+          // Adding a parallel node under the parent node
+          else if (type === 'parallel') {
+            newNode.level = parentLevel; // Keep the same level for parallel nodes
+            node.children.push(newNode);
+          }
+        } 
+        // If the node has children, recursively add to its children
+        else if (node.children.length > 0) {
+          node.children = addNodeToTree(node.children, parentKey, node.level);
+        }
+        return node;
+      });
+    };
+
+    setTreeData(addNodeToTree(treeData, parentKey, 0));
+    setSelectedServices([...selectedServices, newService]);
+    setNodeCount((prevCount) => prevCount + 1);
+  }
+};
