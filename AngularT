@@ -1,58 +1,36 @@
-.tree-node {
-  margin-bottom: 20px; /* Add margin for spacing between nodes */
-  position: relative; /* Position relative to allow connectors */
-}
+// Handle Add Node in Parallel or Sequential
+const handleAddNode = (type, parentKey) => {
+  if (nodeCount < availableServices.length) {
+    const newService = availableServices.find(
+      (service) => !selectedServices.includes(service)
+    );
 
-/* Parallel nodes */
-.tree-node.parallel {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #f0f5ff; /* Light blue background */
-  border: 1px solid #1890ff; /* Dashed blue border */
-  padding: 10px;
-  border-radius: 8px; /* Rounded corners */
-  margin-right: 20px; /* Space between parallel nodes */
-  margin-left: 20px; /* Space between parallel nodes */
-}
+    const newNode = {
+      key: Date.now(),
+      label: newService,
+      type: type,
+      level: 0,
+      children: [],
+    };
 
-/* Sequential nodes */
-.tree-node.sequential {
-  display: block; /* Block display to stack vertically */
-  background-color: #fff7e6; /* Light orange background */
-  border: 1px solid #fa8c16; /* Solid orange border */
-  padding: 10px;
-  border-radius: 8px; /* Rounded corners */
-  margin-left: 60px; /* Indentation for child sequential nodes */
-}
+    // Function to recursively add a node to the tree
+    const addNodeToTree = (nodes, parentKey, parentLevel) => {
+      return nodes.map((node) => {
+        if (node.key === parentKey) {
+          // Adding a node under the parent node, incrementing level for both types
+          newNode.level = parentLevel + 1;
+          node.children.push(newNode);
+        } 
+        // If the node has children, recursively add to its children
+        else if (node.children.length > 0) {
+          node.children = addNodeToTree(node.children, parentKey, node.level);
+        }
+        return node;
+      });
+    };
 
-/* Connector lines */
-.tree-node:before {
-  content: '';
-  position: absolute;
-  width: 2px;
-  height: 20px;
-  background-color: #000; /* Black connector line */
-}
-
-.tree-node.parallel:before {
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%; /* Horizontal line for parallel nodes */
-  height: 2px;
-}
-
-.tree-node.sequential:before {
-  top: -20px;
-  left: 20px;
-  height: 30px; /* Vertical line for sequential nodes */
-  width: 2px;
-}
-body {
-  /* margin: 0; */
-  display: flex;
-  /* place-items: center; */
-  min-width: 320px;
-  min-height: 100vh;
-}
+    setTreeData(addNodeToTree(treeData, parentKey, 0));
+    setSelectedServices([...selectedServices, newService]);
+    setNodeCount((prevCount) => prevCount + 1);
+  }
+};
