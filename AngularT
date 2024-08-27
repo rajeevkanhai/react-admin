@@ -13,20 +13,29 @@ const handleAddNode = (type, parentKey) => {
       children: [],
     };
 
-    // Function to recursively add a node to the tree
+    // Function to add a node at the correct location in the tree
     const addNodeToTree = (nodes, parentKey, parentLevel) => {
-      return nodes.map((node) => {
+      let updatedNodes = [];
+      nodes.forEach((node) => {
         if (node.key === parentKey) {
-          // Adding a node under the parent node, incrementing level for both types
-          newNode.level = parentLevel + 1;
-          node.children.push(newNode);
-        } 
-        // If the node has children, recursively add to its children
-        else if (node.children.length > 0) {
+          if (type === 'parallel') {
+            // Add the new node as a sibling (at the same level as the parent)
+            newNode.level = parentLevel;
+            updatedNodes.push(node); // Keep the original parent node
+            updatedNodes.push(newNode); // Add the new parallel node as a sibling
+          } else if (type === 'sequential') {
+            // Add the new node as a child (increment level by 1)
+            newNode.level = parentLevel + 1;
+            node.children.push(newNode);
+            updatedNodes.push(node);
+          }
+        } else {
+          // Recursively add to child nodes if necessary
           node.children = addNodeToTree(node.children, parentKey, node.level);
+          updatedNodes.push(node);
         }
-        return node;
       });
+      return updatedNodes;
     };
 
     setTreeData(addNodeToTree(treeData, parentKey, 0));
