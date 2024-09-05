@@ -1,221 +1,36 @@
-import { useState } from 'react';
-import { Button, Dropdown, Menu, Select, Card } from 'antd';
-import { DownOutlined } from '@ant-design/icons';
-import './TreeWorkflow.css';
-
-const { Option } = Select;
-
-const TreeWorkflow = () => {
-  const availableServices = [
-    'AUTH_SERVICE',
-    'FRAUD_SERVICE',
-    'GATEWAY_SERVICE',
-    'LOYALTY_SERVICE',
-  ];
-
-  const [treeData, setTreeData] = useState([]);
-  const [selectedServices, setSelectedServices] = useState([]);
-  const [nodeCount, setNodeCount] = useState(0);
-
-  // Helper function to recursively get all services from deleted nodes
-  const getDeletedServices = (node) => {
-    let services = [];
-    if (node.label) services.push(node.label);
-    if (node.children.length > 0) {
-      node.children.forEach((child) => {
-        services = [...services, ...getDeletedServices(child)];
-      });
-    }
-    return services;
-  };
-
-  // Handle Add Service
-  const handleAddService = () => {
-    if (nodeCount < availableServices.length) {
-      const newService = availableServices.find(
-        (service) => !selectedServices.includes(service)
-      );
-      const newNode = {
-        key: Date.now(),
-        label: newService,
-        type: 'root',
-        level: 0,
-        children: [],
-      };
-      setTreeData([...treeData, newNode]);
-      setSelectedServices([...selectedServices, newService]);
-      setNodeCount(1);
+const handleMoveUp = () => {
+    const newTargetKeys = [...targetKeys];
+    const index = targetKeys.findIndex(key => key === newTargetKeys[0]);
+    if (index > 0) {
+      [newTargetKeys[index - 1], newTargetKeys[index]] = [newTargetKeys[index], newTargetKeys[index - 1]];
+      setTargetKeys(newTargetKeys);
     }
   };
 
-  // Handle Add Node in Parallel or Sequential
-  const handleAddNode = (type, parentKey) => {
-    if (nodeCount < availableServices.length) {
-      const newService = availableServices.find(
-        (service) => !selectedServices.includes(service)
-      );
-
-      const newNode = {
-        key: Date.now(),
-        label: newService,
-        type: type,
-        level: 0,
-        children: [],
-      };
-
-      const addNodeToTree = (nodes, parentKey, parentLevel) => {
-        return nodes.map((node) => {
-          if (node.key === parentKey) {
-            if (type === 'parallel') {
-              newNode.level = parentLevel;
-              node.children.push(newNode);
-            } else if (type === 'sequential') {
-              newNode.level = parentLevel + 1;
-              node.children.push(newNode);
-            }
-          } else if (node.children.length > 0) {
-            node.children = addNodeToTree(node.children, parentKey, node.level);
-          }
-          return node;
-        });
-      };
-
-      setTreeData(addNodeToTree(treeData, parentKey, 0));
-      setSelectedServices([...selectedServices, newService]);
-      setNodeCount((prevCount) => prevCount + 1);
+  const handleMoveDown = () => {
+    const newTargetKeys = [...targetKeys];
+    const index = targetKeys.findIndex(key => key === newTargetKeys[newTargetKeys.length - 1]);
+    if (index < newTargetKeys.length - 1) {
+      [newTargetKeys[index + 1], newTargetKeys[index]] = [newTargetKeys[index], newTargetKeys[index + 1]];
+      setTargetKeys(newTargetKeys);
     }
   };
 
-  // Handle Delete Node
-  const handleDeleteNode = (key) => {
-    const deleteNodeFromTree = (nodes, key) => {
-      return nodes.filter((node) => {
-        if (node.key === key) {
-          const deletedServices = getDeletedServices(node);
-          setSelectedServices((prev) =>
-            prev.filter((service) => !deletedServices.includes(service))
-          );
-          setNodeCount((prevCount) => prevCount - deletedServices.length);
-          return false;
-        }
 
-        if (node.children.length > 0) {
-          node.children = deleteNodeFromTree(node.children, key);
-        }
-        return true;
-      });
-    };
-
-    setTreeData(deleteNodeFromTree(treeData, key));
-  };
-
-  // Handle Service Selection
-  const handleSelectService = (key, value) => {
-    const updateServiceLabel = (nodes, key, value) => {
-      return nodes.map((node) => {
-        if (node.key === key) {
-          if (node.label === null) {
-            setSelectedServices([...selectedServices, value]);
-          } else {
-            const updatedServices = selectedServices.map((service) =>
-              service === node.label ? value : service
-            );
-            setSelectedServices(updatedServices);
-          }
-          node.label = value;
-        } else if (node.children.length > 0) {
-          node.children = updateServiceLabel(node.children, key, value);
-        }
-        return node;
-      });
-    };
-
-    setTreeData(updateServiceLabel(treeData, key, value));
-  };
-
-  // Menu for Actions
-  const menu = (node) => (
-    <Menu>
-      <Menu.Item
-        onClick={() => handleAddNode('sequential', node.key)}
-        disabled={
-          !node.label || selectedServices.length >= availableServices.length
-        }
-      >
-        Add Sequential
-      </Menu.Item>
-      <Menu.Item
-        onClick={() => handleAddNode('parallel', node.key)}
-        disabled={
-          !node.label || selectedServices.length >= availableServices.length
-        }
-      >
-        Add Parallel
-      </Menu.Item>
-      <Menu.Item onClick={() => handleDeleteNode(node.key)}>Delete</Menu.Item>
-    </Menu>
-  );
-
-  // Render Tree Nodes
-  const renderTreeNodes = (nodes) =>
-    nodes.map((node) => (
-      <div key={node.key} className={`tree-node ${node.type}`}>
-        <Card
-          title={
-            <Select
-              style={{ width: 200 }}
-              placeholder="Select Service"
-              value={node.label !== null ? node.label : undefined}
-              onChange={(value) => handleSelectService(node.key, value)}
-            >
-              {availableServices
-                .filter((service) => !selectedServices.includes(service))
-                .map((service) => (
-                  <Option key={service} value={service}>
-                    {service}
-                  </Option>
-                ))}
-            </Select>
-          }
-          extra={
-            // <Dropdown
-            //   menu={menu(node)}
-            //   trigger={['click']}
-            //   placement="bottomRight"
-            // >
-            //   <a onClick={(e) => e.preventDefault()}>
-            //     Actions <DownOutlined />
-            //   </a>
-            // </Dropdown>
-            <Dropdown overlay={menu(node)} trigger={['click']}>
-              <a onClick={(e) => e.preventDefault()}>
-                Actions <DownOutlined />
-              </a>
-            </Dropdown>
-          }
-          style={{ marginBottom: '20px' }}
+ <div style={{ marginTop: 20, textAlign: 'center' }}>
+        <Button
+          type="primary"
+          onClick={handleMoveUp}
+          disabled={targetKeys.length === 0 || targetKeys.indexOf(targetKeys[0]) === 0}
         >
-          {node.children.length > 0 && (
-            <div className={`children ${node.type}`}>
-              {renderTreeNodes(node.children)}
-            </div>
-          )}
-        </Card>
-      </div>
-    ));
-
-  return (
-    <div>
-      <div>
-        {treeData.length < 1 && nodeCount < availableServices.length && (
-          <Button onClick={handleAddService} style={{ marginLeft: '10px' }}>
-            Add Service
-          </Button>
-        )}
-      </div>
-      {renderTreeNodes(treeData)}
-    </div>
-  );
-};
-
-export default TreeWorkflow;
+          Move Up
+        </Button>
+        <Button
+          type="primary"
+          onClick={handleMoveDown}
+          style={{ marginLeft: 8 }}
+          disabled={targetKeys.length === 0 || targetKeys.indexOf(targetKeys[targetKeys.length - 1]) === targetKeys.length - 1}
+        >
+          Move Down
+        </Button>
+</div>
