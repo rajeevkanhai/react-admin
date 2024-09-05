@@ -1,36 +1,78 @@
-const handleMoveUp = () => {
-    const newTargetKeys = [...targetKeys];
-    const index = targetKeys.findIndex(key => key === newTargetKeys[0]);
-    if (index > 0) {
-      [newTargetKeys[index - 1], newTargetKeys[index]] = [newTargetKeys[index], newTargetKeys[index - 1]];
-      setTargetKeys(newTargetKeys);
-    }
+import React, { useState } from 'react';
+import { Transfer, Button, Space } from 'antd';
+import 'antd/dist/reset.css'; // Import Ant Design styles
+
+const App = () => {
+  const [mockData, setMockData] = useState(
+    Array.from({ length: 20 }, (_, i) => ({
+      key: i.toString(),
+      title: `Item ${i + 1}`,
+      description: `Description ${i + 1}`,
+    }))
+  );
+
+  const [targetKeys, setTargetKeys] = useState([]);
+
+  const handleChange = (nextTargetKeys) => {
+    setTargetKeys(nextTargetKeys);
   };
 
-  const handleMoveDown = () => {
-    const newTargetKeys = [...targetKeys];
-    const index = targetKeys.findIndex(key => key === newTargetKeys[newTargetKeys.length - 1]);
-    if (index < newTargetKeys.length - 1) {
-      [newTargetKeys[index + 1], newTargetKeys[index]] = [newTargetKeys[index], newTargetKeys[index + 1]];
-      setTargetKeys(newTargetKeys);
-    }
+  const handleSort = (direction) => {
+    setTargetKeys((prevTargetKeys) => {
+      const newTargetKeys = [...prevTargetKeys];
+      const itemIndex = prevTargetKeys.findIndex((key) => key === newTargetKeys[newTargetKeys.length - 1]);
+
+      if (itemIndex === -1) return prevTargetKeys; // Item not found
+
+      const item = newTargetKeys.splice(itemIndex, 1)[0];
+
+      if (direction === 'up') {
+        if (itemIndex > 0) {
+          newTargetKeys.splice(itemIndex - 1, 0, item);
+        }
+      } else if (direction === 'down') {
+        if (itemIndex < newTargetKeys.length - 1) {
+          newTargetKeys.splice(itemIndex + 1, 0, item);
+        }
+      }
+
+      return newTargetKeys;
+    });
   };
 
-
- <div style={{ marginTop: 20, textAlign: 'center' }}>
+  const renderFooter = (props) => (
+    <div style={{ marginTop: 16 }}>
+      <Space>
         <Button
-          type="primary"
-          onClick={handleMoveUp}
-          disabled={targetKeys.length === 0 || targetKeys.indexOf(targetKeys[0]) === 0}
+          onClick={() => handleSort('up')}
+          disabled={targetKeys.length === 0}
         >
           Move Up
         </Button>
         <Button
-          type="primary"
-          onClick={handleMoveDown}
-          style={{ marginLeft: 8 }}
-          disabled={targetKeys.length === 0 || targetKeys.indexOf(targetKeys[targetKeys.length - 1]) === targetKeys.length - 1}
+          onClick={() => handleSort('down')}
+          disabled={targetKeys.length === 0}
         >
           Move Down
         </Button>
-</div>
+      </Space>
+    </div>
+  );
+
+  return (
+    <Transfer
+      dataSource={mockData}
+      showSearch
+      listStyle={{
+        width: 250,
+        height: 300,
+      }}
+      targetKeys={targetKeys}
+      onChange={handleChange}
+      render={(item) => item.title}
+      footer={renderFooter}
+    />
+  );
+};
+
+export default App;
