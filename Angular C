@@ -11,16 +11,26 @@ const App = () => {
 
   // Function to include/exclude a row based on priority
   const handleIncludeExclude = (key, include) => {
-    setDataSource((prevData) =>
-      prevData
-        .map((item) =>
-          item.key === key
-            ? { ...item, priority: include ? item.priority + 1 : 0 }
-            : item
-        )
+    setDataSource((prevData) => {
+      // Find the maximum priority currently in the data
+      let maxPriority = Math.max(...prevData.map(item => item.priority));
+
+      return prevData
+        .map((item) => {
+          if (item.key === key) {
+            // If we are including, assign the next highest priority (maxPriority + 1)
+            if (include) {
+              return { ...item, priority: maxPriority + 1 };
+            } else {
+              // If excluding, reset priority to 0
+              return { ...item, priority: 0 };
+            }
+          }
+          return item;
+        })
         // Sort data by priority in descending order
-        .sort((a, b) => b.priority - a.priority)
-    );
+        .sort((a, b) => b.priority - a.priority);
+    });
   };
 
   // Define table columns
