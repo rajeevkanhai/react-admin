@@ -1,34 +1,35 @@
-// Function to include/exclude a row based on priority
-  const handleIncludeExclude = (key, include) => {
+// Function to move a row's priority up
+  const handleMoveUp = (key) => {
     setDataSource((prevData) => {
-      // Find the current row being included/excluded
-      const targetRow = prevData.find(row => row.key === key);
+      return prevData.map(item => {
+        const targetRow = prevData.find(row => row.key === key);
+        if (item.priority === targetRow.priority - 1) {
+          // Swap priority with the row above
+          return { ...item, priority: item.priority + 1 };
+        }
+        if (item.key === key) {
+          return { ...item, priority: item.priority - 1 };
+        }
+        return item;
+      })
+      .sort((a, b) => a.priority - b.priority); // Sort rows by ascending priority
+    });
+  };
 
-      if (include) {
-        // Find the maximum priority in the current data
-        let maxPriority = Math.max(...prevData.map(item => item.priority));
-
-        // Set the priority of the selected row to maxPriority + 1
-        return prevData
-          .map(item => item.key === key ? { ...item, priority: maxPriority + 1 } : item)
-          .sort((a, b) => a.priority - b.priority); // Sort rows by ascending priority
-
-      } else {
-        // On excluding, we decrease the priority of all rows with a higher priority than the excluded row
-        const excludedPriority = targetRow.priority;
-
-        return prevData
-          .map(item => {
-            if (item.key === key) {
-              // Set the priority of the excluded row to 0
-              return { ...item, priority: 0 };
-            } else if (item.priority > excludedPriority) {
-              // Decrease priority of rows that had higher priority
-              return { ...item, priority: item.priority - 1 };
-            }
-            return item;
-          })
-          .sort((a, b) => a.priority - b.priority); // Sort rows by ascending priority
-      }
+  // Function to move a row's priority down
+  const handleMoveDown = (key) => {
+    setDataSource((prevData) => {
+      return prevData.map(item => {
+        const targetRow = prevData.find(row => row.key === key);
+        if (item.priority === targetRow.priority + 1) {
+          // Swap priority with the row below
+          return { ...item, priority: item.priority - 1 };
+        }
+        if (item.key === key) {
+          return { ...item, priority: item.priority + 1 };
+        }
+        return item;
+      })
+      .sort((a, b) => a.priority - b.priority); // Sort rows by ascending priority
     });
   };
