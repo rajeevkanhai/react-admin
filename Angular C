@@ -1,35 +1,64 @@
-// Function to move a row's priority up
-  const handleMoveUp = (key) => {
-    setDataSource((prevData) => {
-      return prevData.map(item => {
-        const targetRow = prevData.find(row => row.key === key);
-        if (item.priority === targetRow.priority - 1) {
-          // Swap priority with the row above
-          return { ...item, priority: item.priority + 1 };
-        }
-        if (item.key === key) {
-          return { ...item, priority: item.priority - 1 };
-        }
-        return item;
-      })
-      .sort((a, b) => a.priority - b.priority); // Sort rows by ascending priority
-    });
+import React, { useState } from 'react';
+import { Form, Input, Button, Tag, message } from 'antd';
+
+const TagsInputForm = () => {
+  const [form] = Form.useForm();
+  const [tags, setTags] = useState([]);
+
+  const handleAddTag = (e) => {
+    const value = e.target.value;
+    if (value && !tags.includes(value)) {
+      setTags([...tags, value]);
+      form.setFieldsValue({ tags: '' }); // Clear input field
+    }
   };
 
-  // Function to move a row's priority down
-  const handleMoveDown = (key) => {
-    setDataSource((prevData) => {
-      return prevData.map(item => {
-        const targetRow = prevData.find(row => row.key === key);
-        if (item.priority === targetRow.priority + 1) {
-          // Swap priority with the row below
-          return { ...item, priority: item.priority - 1 };
-        }
-        if (item.key === key) {
-          return { ...item, priority: item.priority + 1 };
-        }
-        return item;
-      })
-      .sort((a, b) => a.priority - b.priority); // Sort rows by ascending priority
-    });
+  const handleDeleteTag = (tag) => {
+    const newTags = tags.filter((t) => t !== tag);
+    setTags(newTags);
   };
+
+  const handleFinish = (values) => {
+    console.log('Submitted values:', { ...values, tags });
+    message.success('Form submitted successfully!');
+    form.resetFields();
+    setTags([]);
+  };
+
+  return (
+    <div style={{ maxWidth: 600, margin: 'auto' }}>
+      <Form form={form} layout="vertical" onFinish={handleFinish}>
+        <Form.Item
+          label="Tags"
+          rules={[{ required: true, message: 'Please add at least one tag!' }]}
+        >
+          <Input
+            placeholder="Press Enter to add tags"
+            onPressEnter={handleAddTag}
+            value={form.getFieldValue('tags')}
+          />
+          <div style={{ marginTop: 8 }}>
+            {tags.map((tag) => (
+              <Tag
+                key={tag}
+                closable
+                onClose={() => handleDeleteTag(tag)}
+                style={{ margin: '4px 0' }}
+              >
+                {tag}
+              </Tag>
+            ))}
+          </div>
+        </Form.Item>
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Submit
+          </Button>
+        </Form.Item>
+      </Form>
+    </div>
+  );
+};
+
+export default TagsInputForm;
